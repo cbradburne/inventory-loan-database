@@ -1,0 +1,8 @@
+Create the folder "Database" in:
+
+Windows - C:/Users/Public/Documents/
+macOS   - Macintosh HD/Users/Shared/
+
+The Database folder included contains example files. Copy these files to the "Databse" folder for testing.
+
+Create your own JSON files using the included "Item CSV to JSON" and "User CSV to JSON" files and move the new JSON files to the 'Database' folder.
