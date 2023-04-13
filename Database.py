@@ -2,7 +2,7 @@
 #pip3 install https://github.com/kivy/kivy/archive/master.zip
 #pip3 install https://github.com/kivymd/KivyMD/archive/master.zip
 #pip3 install tinydb
-#pip3 install FPDFin
+#pip3 install FPDF
 #pip3 install pyinstaller
 
 #Windows
@@ -12,7 +12,7 @@
 #python -m pip install FPDF
 #python -m pip install pyinstaller
 
-#python -m PyInstaller --onefile --windowed MusicDatabase.py
+#python -m PyInstaller --onefile --windowed Database.py
 
 from kivy.metrics import dp
 from kivy.lang import Builder
@@ -78,6 +78,8 @@ dateRangeTo = 0.0
 showNamesList = False
 checkboxState = False
 showLongTerm = False
+historyItemID = ""
+historyUserEmail = ""
 
 if platform == "win32" or platform == "Windows" or platform == "win":                           # Tests if using Windows as different OS has different Printer code
     isWindows = True
@@ -798,6 +800,26 @@ WindowManager:
             font_size: "18sp"
             on_release: app.goToScreenAddItem()
 
+        MDTextField:
+            id: textInputHistoryItemID
+            mode: "rectangle"
+            hint_text: "Item ID"
+            helper_text_mode: "on_error"
+            pos_hint: {"center_x": .1, "center_y": .915}
+            size_hint_x: 0.1
+            text_color_normal: "white"
+            text: ""
+
+        MDTextField:
+            id: textInputhistoryUserEmail
+            mode: "rectangle"
+            hint_text: "Email"
+            helper_text_mode: "on_error"
+            pos_hint: {"center_x": .2, "center_y": .915}
+            size_hint_x: 0.1
+            text_color_normal: "white"
+            text: ""         
+
         MDFlatButton:
             id: historyDatePickerButton
             text: "Date Range"
@@ -1271,6 +1293,8 @@ class MainApp(MDApp):
     def keyDown(self, instance, keyboard, keycode, text, modifiers):                            # Activates everytime a key pressed
         global userID
         global checkboxState
+        global historyItemID
+        global historyUserEmail
 
         if keycode == 40 or keycode == 88:                                                      # on "return" key pressed
 
@@ -1503,6 +1527,18 @@ class MainApp(MDApp):
             #elif self.root.get_screen('addItem').ids.textInputAddItemModel.focus == True:
             #    Clock.schedule_once(self.addItemToSerialNo, 0)
 
+            elif self.root.get_screen('history').ids.textInputHistoryItemID.focus == True:
+                historyItemID = self.root.get_screen('history').ids.textInputHistoryItemID.text
+                historyUserEmail = ""
+                self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+                self.goToScreenHistory()
+
+            elif self.root.get_screen('history').ids.textInputhistoryUserEmail.focus == True:
+                historyUserEmail = self.root.get_screen('history').ids.textInputhistoryUserEmail.text
+                historyItemID = ""
+                self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
+                self.goToScreenHistory()
+
         elif keycode == 43:                                                                     # on "tab" key pressed
             if self.root.get_screen('main').ids.textInputUserID.focus == True:
                 self.root.get_screen('main').ids.textInputUserName.focus = True
@@ -1672,7 +1708,13 @@ class MainApp(MDApp):
     def goToScreenMain(self):
         global dateRangeFrom
         global dateRangeTo
-        
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
         dateRangeFrom = 0
         dateRangeTo = 0
 
@@ -1683,7 +1725,13 @@ class MainApp(MDApp):
     def goToScreenReturn(self):
         global dateRangeFrom
         global dateRangeTo
-        
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
         dateRangeFrom = 0
         dateRangeTo = 0
 
@@ -1695,9 +1743,16 @@ class MainApp(MDApp):
         global dateRangeFrom
         global dateRangeTo
         global showLongTerm
-        
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
         dateRangeFrom = 0
         dateRangeTo = 0
+
         self.root.current = "bookedout"
         outText = outDB.all()
         DBLength = len(outDB)
@@ -1791,17 +1846,44 @@ class MainApp(MDApp):
         global historyPath
         global dateRangeFrom
         global dateRangeTo
+        global historyItemID
+        global historyUserEmail
 
         self.root.current = "history"
-        if dateRangeFrom > 0:
-            historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
-        else:
-            dateRangeTo = datetime.timestamp(datetime.now())
-            dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
-            historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
 
-            self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
-            self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
+        if historyItemID == "":
+            if historyUserEmail == "":
+                if dateRangeFrom > 0:
+                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
+                else:
+                    dateRangeTo = datetime.timestamp(datetime.now())
+                    dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
+                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
+
+                    self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
+                    self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
+
+            else:
+                if dateRangeFrom > 0:
+                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))
+                else:
+                    dateRangeTo = datetime.timestamp(datetime.now())
+                    dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
+                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))
+
+                    self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
+                    self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
+
+        else:
+            if dateRangeFrom > 0:
+                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))
+            else:
+                dateRangeTo = datetime.timestamp(datetime.now())
+                dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
+                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))
+
+                self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
+                self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
             
         DBLength = len(historyText)
 
@@ -1871,13 +1953,31 @@ class MainApp(MDApp):
         pdf.output(historyPath)
 
     def goToScreenAddUser(self):
+        global dateRangeFrom
+        global dateRangeTo
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
+        dateRangeFrom = 0
+        dateRangeTo = 0
+
         self.root.current = "addUser"
         self.root.get_screen('addUser').ids.textInputAddUserID.focus = True
 
     def goToScreenAddItem(self):
         global dateRangeFrom
         global dateRangeTo
-        
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
         dateRangeFrom = 0
         dateRangeTo = 0
 
