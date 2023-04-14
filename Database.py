@@ -1,18 +1,21 @@
 #macOS
-#pip3 install https://github.com/kivy/kivy/archive/master.zip
-#pip3 install https://github.com/kivymd/KivyMD/archive/master.zip
-#pip3 install tinydb
-#pip3 install FPDF
-#pip3 install pyinstaller
+# pip3 install https://github.com/kivy/kivy/archive/master.zip
+# pip3 install https://github.com/kivymd/KivyMD/archive/master.zip
+# pip3 install pygame
+# pip3 install tinydb
+# pip3 install FPDF
+# pip3 install pyinstaller
 
 #Windows
-#python -m pip install https://github.com/kivy/kivy/archive/master.zip
-#python -m pip install https://github.com/kivymd/KivyMD/archive/master.zip
-#python -m pip install tinydb
-#python -m pip install FPDF
-#python -m pip install pyinstaller
+# python -m pip install https://github.com/kivy/kivy/archive/master.zip
+# python -m pip install https://github.com/kivymd/KivyMD/archive/master.zip
+# python -m pip install pygame
+# python -m pip install tinydb
+# python -m pip install FPDF
+# python -m pip install pyinstaller
 
-#python -m PyInstaller --onefile --windowed Database.py
+# python -m PyInstaller --onefile --windowed Database.py
+# python -m PyInstaller app.spec
 
 from kivy.metrics import dp
 from kivy.lang import Builder
@@ -249,7 +252,7 @@ WindowManager:
 
         AnchorLayout:
             id: data_layout
-            pos_hint: {"center_x": .5, "center_y": .4}
+            pos_hint: {"center_x": .5, "center_y": .39}
 
         MDFlatButton:
             id: outButton
@@ -287,8 +290,6 @@ WindowManager:
             size_hint: (0.1), (0.02)
             font_size: "18sp"
             on_release: app.remove_all_rows()
-
-
             
 <SecondWindow>:
     name: 'returns'
@@ -638,9 +639,6 @@ WindowManager:
             font_size: "18sp"
             on_release: app.exportBooked()
 
-            
-
-
 <FourthWindow>:
     name: 'history'
     MDScreen:
@@ -873,9 +871,6 @@ WindowManager:
             font_size: "18sp"
             on_release: app.exportHistory()
 
-
-            
-
 <FifthWindow>:
     name: 'addUser'
     MDScreen:
@@ -1007,9 +1002,6 @@ WindowManager:
                 size_hint: (0.1), (0.01)
                 font_size: "18sp"
                 on_release: app.addUserSave()
-
-
-            
 
 <SixthWindow>:
     name: 'addItem'
@@ -1177,7 +1169,6 @@ class MainApp(MDApp):
     
     def add_datatable(self, dt):
         self.data_tables = MDDataTable(
-            pos_hint={"center_y": 2, "center_x": 0.5},
             size_hint=(0.8, 0.6),
             check=True,
             rows_num=20,
@@ -1191,7 +1182,6 @@ class MainApp(MDApp):
         #.data_tables.bind(on_row_presss=self.on_row_press)
         self.data_tables.bind(on_check_press=self.on_check_press)                               # Binds the check box mouse click to the function "on_check_press"
         self.root.get_screen('main').ids.data_layout.add_widget(self.data_tables)               # Adds the DataTable to the GUI
-        
 
     def add_row(self, tempItemInput, tempItemName, longTerm) -> None:                           # Adds an item to the DataTable
         if len(self.data_tables.row_data) == 0:                                                 # If there are NO rows - no need to sort rows when there's only 1 row
@@ -1236,7 +1226,6 @@ class MainApp(MDApp):
             Clock.schedule_once(self.clearTextInputItemMain, 0)
     
     def on_row_press(self, instance_table, instance_row):
-        print("here!!")
         row_num = int(instance_row.index/len(instance_table.column_data))
         row_data = instance_table.row_data[row_num]
         
@@ -1245,7 +1234,7 @@ class MainApp(MDApp):
                 self.data_tables.row_data[i],                                                   # For row i
                 [self.data_tables.row_data[i][0],                                               # Old row data - itemID
                 self.data_tables.row_data[i][1],                                                # Old row data - itemName
-                "",                                                                            # New row data - longTerm
+                "",                                                                             # New row data - longTerm
                 self.data_tables.row_data[i][3]])                                               # New row data
         else:
             self.data_tables.update_row(
@@ -1261,7 +1250,7 @@ class MainApp(MDApp):
         global checkboxState
 
         if value:
-            print('The checkbox', checkbox, 'is active', 'and', checkbox.state, 'state')
+            #print('The checkbox', checkbox, 'is active', 'and', checkbox.state, 'state')
             if checkbox.state == "normal":
                 checkboxState = False
             elif checkbox.state == "down":
@@ -1274,7 +1263,7 @@ class MainApp(MDApp):
         global showLongTerm
 
         if value:
-            print('The checkbox', checkbox, 'is active', 'and', checkbox.state, 'state')
+            #print('The checkbox', checkbox, 'is active', 'and', checkbox.state, 'state')
             if checkbox.state == "normal":
                 showLongTerm = False
                 self.goToScreenbookedOut()
@@ -1403,10 +1392,10 @@ class MainApp(MDApp):
 
                 else:
                     if checkboxState == False:
-                        self.add_row(tempItemInput, tempItemName[0]['itemName'], '')                    # add row to dataTable
+                        self.add_row(tempItemInput, tempItemName[0]['itemName'], '')            # add row to dataTable
 
                     elif checkboxState == True:
-                        self.add_row(tempItemInput, tempItemName[0]['itemName'], '*')                    # add row to dataTable
+                        self.add_row(tempItemInput, tempItemName[0]['itemName'], '*')           # add row to dataTable
                         self.root.get_screen('main').ids.longTermCheckbox.state = "normal"
                         checkboxState = False
 
@@ -1465,7 +1454,6 @@ class MainApp(MDApp):
             # ADD USER - userID input
 
             elif self.root.get_screen('addUser').ids.textInputAddUserID.focus == True:
-
                 tempUserInput = self.root.get_screen('addUser').ids.textInputAddUserID.text
                 tempUserID = (userDB.search(DBquery.userID == tempUserInput))
 
@@ -1539,7 +1527,7 @@ class MainApp(MDApp):
                 self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
                 self.goToScreenHistory()
 
-        elif keycode == 43:                                                                     # on "tab" key pressed
+        elif keycode == 43:                                                                         # on "tab" key pressed
             if self.root.get_screen('main').ids.textInputUserID.focus == True:
                 self.root.get_screen('main').ids.textInputUserName.focus = True
                 self.root.get_screen('main').ids.textInputUserName.text = ""
@@ -1551,8 +1539,6 @@ class MainApp(MDApp):
                 self.root.get_screen('main').ids.textInputUserID.text = ""
             
             Clock.schedule_once(self.clearInputs, 0)
-        else:
-            pass
             
     def clearInputs(self, dt):
         self.root.get_screen('main').ids.textInputUserName.text = ""
@@ -1638,16 +1624,25 @@ class MainApp(MDApp):
 
                 else:                                                                               # If booked out already
                     tempRead = (outDB.search(DBquery.itemID == itemID))                             # Find item in outDB
-                    tempStartDate = (tempRead[0]['dateID'])                                         # Read and store date booked out
                     tempUserID = (tempRead[0]['userID'])                                            # Read and store who it was booked out to
+                    tempStartDate = (tempRead[0]['dateID'])                                         # Read and store date booked out
+
+                    getUser = (userDB.search(DBquery.userID == tempUserID))
+                    tempUserFirst = (getUser[0]['firstName'])
+                    tempUserLast = (getUser[0]['lastName'])
+                    tempUserEmail = (getUser[0]['email'])
+
                     outDB.remove(where('itemID') == itemID)                                         # Remove item from outDB
 
                     historyDB.insert({'itemID': itemID, 
                                     'userID': tempUserID, 
+                                    'userFirst': tempUserFirst,                                     # Store name & email in case they're later removed from userDB
+                                    'userLast': tempUserLast, 
+                                    'email': tempUserEmail,
                                     'startDate': tempStartDate, 
                                     'returnDate': currentDate})                                     # Insert old booking in to historyDB
-
-                    outDB.insert({'itemID': itemID, 'userID': userID, 'dateID': currentDate})       # Insert new booking in to outDB
+                    
+                    outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
 
                 i +=1
 
@@ -1813,7 +1808,6 @@ class MainApp(MDApp):
                 self.root.get_screen('bookedout').ids.bookedOutBoxUserName.text += userName + "\n"
                 self.root.get_screen('bookedout').ids.bookedOutBoxUserEmail.text += userEmail + "\n"
                 self.root.get_screen('bookedout').ids.bookedOutBoxDate.text += dateOut + "\n"
-                print("here")
 
             elif longTerm == "":
                 if flipPDFBackground:
@@ -1985,10 +1979,10 @@ class MainApp(MDApp):
         self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
     
     def addUserToUserFirstName(self, dt):
-        self.root.get_screen('addUser').ids.textInputAddUserFirstName.focus = True                       # set focus to 
+        self.root.get_screen('addUser').ids.textInputAddUserFirstName.focus = True                  # set focus to 
 
     def addUserToUserLastName(self, dt):
-        self.root.get_screen('addUser').ids.textInputAddUserLastName.focus = True                       # set focus to 
+        self.root.get_screen('addUser').ids.textInputAddUserLastName.focus = True                   # set focus to 
 
     def addUserToUserEmail(self, dt):
         self.root.get_screen('addUser').ids.textInputAddUserEmail.focus = True                      # set focus to 
@@ -2055,7 +2049,6 @@ class MainApp(MDApp):
         
         self.root.get_screen('addUser').ids.textErrorAddUser.text = "User added"
         Clock.schedule_once(self.resetTextErrorAll, 2)
-
         Clock.schedule_once(self.addUserClear, 0)
         
     def addUserClear(self, dt):
@@ -2079,7 +2072,6 @@ class MainApp(MDApp):
                         'serialNo': addItemSerial})
         
         self.root.get_screen('addItem').ids.textErrorAddItem.text = "Item added"
-
         Clock.schedule_once(self.resetTextErrorAll, 2)
         Clock.schedule_once(self.addItemClearSome, 0)
         
