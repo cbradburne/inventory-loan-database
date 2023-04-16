@@ -1159,6 +1159,8 @@ WindowManager:
 
 class MainApp(MDApp):
     def build(self):
+        self.title = 'Database'
+        self.icon = 'dbIcon.png'
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Amber"
         self.uiDict = {}
