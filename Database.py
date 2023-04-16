@@ -5,6 +5,8 @@
 # pip3 install tinydb
 # pip3 install FPDF
 # pip3 install pyinstaller
+# python3 -m PyInstaller --onefile --windowed --icon="dbIcon.icns" --name Database Database.py
+
 
 #Windows
 # python -m pip install https://github.com/kivy/kivy/archive/master.zip
@@ -14,7 +16,7 @@
 # python -m pip install FPDF
 # python -m pip install pyinstaller
 
-# python -m PyInstaller --onefile --windowed Database.py
+# python -m PyInstaller --onefile --windowed --icon="dbIcon.ico" --name Database Database.py
 # python -m PyInstaller app.spec
 
 from kivy.metrics import dp
@@ -49,6 +51,7 @@ Config.set('graphics', 'fullscreen', '0')
 Config.set('graphics', 'width', '1600')
 Config.set('graphics', 'window_state', 'windowed')
 Config.set('graphics', 'height', '900')
+Config.set('kivy','window_icon','dbIcon.png')
 Config.write()
 
 class MainWindow(Screen):
@@ -1246,7 +1249,7 @@ class MainApp(MDApp):
                 "*",                                                                            # New row data - longTerm
                 self.data_tables.row_data[i][3]])                                               # New row data
 
-        print (row_data)
+        #print (row_data)
 
     def on_checkbox_active(self, checkbox, value):
         global checkboxState
@@ -1916,7 +1919,8 @@ class MainApp(MDApp):
             getItem = (itemDB.search(DBquery.itemID == itemID))
 
             if getItem == "" or getItem == []:
-                print("Item not found")
+                pass
+                #print("Item not found")
             else:
                 itemName = (getItem[0]['itemName'])
 
