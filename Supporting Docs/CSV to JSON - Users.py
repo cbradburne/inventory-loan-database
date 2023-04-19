@@ -1,7 +1,6 @@
-# Make sure that the CSV file is stored in the same directory as this file
-
 import csv
 from tinydb import TinyDB
+from tinydb.storages import JSONStorage
 
 userDB = TinyDB('userdb.json')
 
@@ -14,5 +13,4 @@ with open('users.csv') as csv_file:
                         'lastName': row[2], 
                         'email': row[3]})
         line_count += 1
-
     print(f'Processed {line_count} lines.')
