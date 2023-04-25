@@ -18,33 +18,30 @@
 # python -m PyInstaller --onefile --windowed --icon="dbIcon.ico" Database.py
 # python -m PyInstaller app.spec
 
-from kivy.metrics import dp
-from kivy.lang import Builder
-from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
-from kivymd.app import MDApp
-from kivy.utils import platform
-from kivy.uix.button import Button
-from kivymd.uix.datatables import MDDataTable
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.floatlayout import MDFloatLayout
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.pickers import MDDatePicker
-from kivymd.uix.dropdownitem import MDDropDownItem
 from kivy.clock import Clock
-from kivy.core.window import Window
 from kivy.config import Config
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.metrics import dp
+from kivy.uix.button import Button
+from kivy.uix.screenmanager import ScreenManager, Screen #, NoTransition
+from kivy.utils import platform
+from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.textfield import MDTextField
 from datetime import datetime
 from datetime import timedelta
 from tinydb import TinyDB
 from tinydb import Query
 from tinydb import where
-from fpdf import FPDF
-import shlex
-import os, sys
 from pathlib import Path
-import tempfile
-import time
+from fpdf import FPDF
 import subprocess
+import time
+import os
 
 Config.set('graphics', 'fullscreen', '0')
 Config.set('graphics', 'width', '1600')
@@ -836,18 +833,7 @@ WindowManager:
             pos_hint: {"center_x": .21, "center_y": .915}
             size_hint_x: 0.18
             text_color_normal: "white"
-            text: ""         
-
-        MDFlatButton:
-            id: historyDatePickerButton
-            text: "Change Dates"
-            text_color: 1, 1, 1, 1
-            line_width: 1.2
-            line_color: 0.1, 0.5, 0.5, 1
-            size_hint: (0.1), (0.01)
-            pos_hint: {"center_x": .38, "center_y": .91}
-            font_size: "18sp"
-            on_release: app.historyDatePicker()
+            text: ""
 
         MDFlatButton:
             id: historyFromDatePicker
@@ -856,7 +842,7 @@ WindowManager:
             line_width: 1.2
             line_color: 0.4, 0.4, 0.4, 1
             size_hint: (0.1), (0.01)
-            pos_hint: {"center_x": .495, "center_y": .91}
+            pos_hint: {"center_x": .445, "center_y": .91}
             font_size: "18sp"
 
         MDFlatButton:
@@ -866,19 +852,30 @@ WindowManager:
             line_width: 1.2
             line_color: 0.4, 0.4, 0.4, 1
             size_hint: (0.1), (0.01)
-            pos_hint: {"center_x": .605, "center_y": .91}
+            pos_hint: {"center_x": .555, "center_y": .91}
             font_size: "18sp"
 
         MDFlatButton:
-            id: historyDateResetButton
-            text: "Reset Dates"
+            id: historyDatePickerButton
+            text: "Change Dates"
             text_color: 1, 1, 1, 1
             line_width: 1.2
             line_color: 0.1, 0.5, 0.5, 1
             size_hint: (0.1), (0.01)
-            pos_hint: {"center_x": .72, "center_y": .91}
+            pos_hint: {"center_x": .67, "center_y": .91}
             font_size: "18sp"
-            on_release: app.historyDateReset()
+            on_release: app.historyDatePicker()
+
+        MDFlatButton:
+            id: historyDateResetButton
+            text: "Reset Search"
+            text_color: 0, 0, 1, 1
+            line_width: 2
+            line_color: 0.7, 0.2, 0.2, 1
+            pos_hint: {"center_x": .15, "center_y": .05}
+            size_hint: (0.1), (0.02)
+            font_size: "18sp"
+            on_release: app.goToScreenHistory()
 
         MDFlatButton:
             id: exportHistory
@@ -1259,36 +1256,22 @@ class MainApp(MDApp):
                 "*",                                                                                # New row data - longTerm
                 self.data_tables.row_data[i][3]])                                                   # New row data
 
-    def on_checkbox_active(self, checkbox, value):
+    def on_checkbox_active(self, checkbox, value):                                                  # Toggles "longTerm" bookings mode on checking out of item
         global checkboxState
-
         if value:
-            if checkbox.state == "normal":
-                checkboxState = False
-            elif checkbox.state == "down":
-                checkboxState = True
-
+            checkboxState = True
         else:
             checkboxState = False
-
-    def on_checkbox_active_bookedOut(self, checkbox, value):
+        Clock.schedule_once(self.clearTextInputItemMain, 0.3)
+        
+    def on_checkbox_active_bookedOut(self, checkbox, value):                                        # Toggles "longTerm" bookings view on "Booked Out"
         global showLongTerm
-
         if value:
-            if checkbox.state == "normal":
-                showLongTerm = False
-                self.goToScreenbookedOut()
-                
-            elif checkbox.state == "down":
-                showLongTerm = True
-                self.goToScreenbookedOut()
+            showLongTerm = True
+            self.goToScreenbookedOut()
         else:
             showLongTerm = False
             self.goToScreenbookedOut()
-
-    def set_item(self, text_item):
-        self.screen.ids.drop_item.set_item(text_item)
-        self.menu.dismiss()
 
     def keyDown(self, instance, keyboard, keycode, text, modifiers):                                # Activates everytime a key pressed
         global userID
@@ -1310,9 +1293,8 @@ class MainApp(MDApp):
 
                 getUser = (userDB.search(DBquery.userID == userID))                                 # search for user number in item database
                 
-                if not getUser:                                                                     # If user not found...
-                    self.root.get_screen('main').ids.textErrorMain.text = "No user found"           # Add text to main page message box
-                    Clock.schedule_once(self.resetTextErrorAll, 2)                                  # Remove text in main page message box after 2 seconds
+                if not getUser:                                                                     # If user not found...                     # Remove text in main page message box after 2 seconds
+                    self.doMessage("No user found")
                     Clock.schedule_once(self.resetTextInputItemMain, 0)
                     Clock.schedule_once(self.cursorToUserID, 0)
 
@@ -1329,8 +1311,11 @@ class MainApp(MDApp):
 
             elif self.root.get_screen('main').ids.textInputUserName.focus == True:
                 names = self.root.get_screen('main').ids.textInputUserName.text.capitalize()
-                foundNames = userDB.search(DBquery.lastName.search(names + '+'))
+                foundFirstNames = userDB.search(DBquery.firstName.search(names + '+'))
+                foundLastNames = userDB.search(DBquery.lastName.search(names + '+'))
 
+                foundNames = foundFirstNames + foundLastNames
+                
                 if len(foundNames) == 1:
                     userID = (foundNames[0]['userID'])
                     userName = (foundNames[0]['firstName']) + " " + (foundNames[0]['lastName'])
@@ -1356,8 +1341,7 @@ class MainApp(MDApp):
                     self.showNamesList(userNameList)
 
                 else:
-                    self.root.get_screen('main').ids.textErrorMain.text = "No user found"
-                    Clock.schedule_once(self.resetTextErrorAll, 2)
+                    self.doMessage("No user found")
                     Clock.schedule_once(self.resetTextInputItemMain, 0)
                     Clock.schedule_once(self.cursorToUserName, 0)
 
@@ -1392,46 +1376,49 @@ class MainApp(MDApp):
                     self.showEmailList(userEmailList)
 
                 else:
-                    self.root.get_screen('main').ids.textErrorMain.text = "No user found"
-                    Clock.schedule_once(self.resetTextErrorAll, 2)
+                    self.doMessage("No user found")
                     Clock.schedule_once(self.resetTextInputItemMain, 0)
                     Clock.schedule_once(self.cursorToUserEmail, 0)
 
             # BOOKING - itemID input
 
             elif self.root.get_screen('main').ids.textInputItem.focus == True:                      # If enter pressed inside main screen inputItem box
-                tempItemInput = (self.root.get_screen('main').ids.textInputItem.text)               # Get text in inputItem box
-                listLength = len(self.data_tables.row_data)
-                
-                if listLength > 0:
-                    i=0
-                    while i < listLength:                                                           # Iterate through rows
-                        lineData = self.data_tables.row_data[i]
-                        itemID = lineData[0]                                                
-        
-                        if itemID == tempItemInput:                                                 # If itemID found in list
-                            self.root.get_screen('main').ids.textErrorMain.text = "Duplicate item"                  # Set message box
-                            Clock.schedule_once(self.resetTextErrorAll, 2)                          # Clear message box after 2 seconds
-                            Clock.schedule_once(self.clearTextInputItemMain, 0)                     # Clear return text input box and re-focus   
-                            return                                                                  # Cancel adding to list
-                        i +=1                                                                       # Iterate i
-
-                tempItemName = (itemDB.search(DBquery.itemID == tempItemInput))                     # search for item number in item database
-                if tempItemName == "" or tempItemName == []:                                        # If text input blank
-                    self.root.get_screen('main').ids.textErrorMain.text = "Item not found"          # Set message box
-                    Clock.schedule_once(self.resetTextErrorAll, 2)                                  # Clear message box after 2 seconds
-                    Clock.schedule_once(self.clearTextInputItemMain, 0)                             # Clear item input text box
+                if self.root.get_screen('main').ids.textInputUserID.text == "":
+                    self.doMessage("No User selected")
+                    Clock.schedule_once(self.resetTextInputItemMain, 0)
+                    Clock.schedule_once(self.cursorToUserID, 0)
 
                 else:
-                    if checkboxState == False:
-                        self.add_row(tempItemInput, tempItemName[0]['itemName'], '')                # add row to dataTable
+                    tempItemInput = (self.root.get_screen('main').ids.textInputItem.text)               # Get text in inputItem box
+                    listLength = len(self.data_tables.row_data)
+                    
+                    if listLength > 0:
+                        i=0
+                        while i < listLength:                                                           # Iterate through rows
+                            lineData = self.data_tables.row_data[i]
+                            itemID = lineData[0]                                                
+            
+                            if itemID == tempItemInput:                                                 # If itemID found in list
+                                self.doMessage("Duplicate item")
+                                Clock.schedule_once(self.clearTextInputItemMain, 0)                     # Clear return text input box and re-focus   
+                                return                                                                  # Cancel adding to list
+                            i +=1                                                                       # Iterate i
 
-                    elif checkboxState == True:
-                        self.add_row(tempItemInput, tempItemName[0]['itemName'], '*')               # add row to dataTable
-                        self.root.get_screen('main').ids.longTermCheckbox.state = "normal"
-                        checkboxState = False
+                    tempItemName = (itemDB.search(DBquery.itemID == tempItemInput))                     # search for item number in item database
+                    if tempItemName == "" or tempItemName == []:                                        # If text input blank
+                        self.doMessage("Item not found")
+                        Clock.schedule_once(self.clearTextInputItemMain, 0)                             # Clear item input text box
 
-                    Clock.schedule_once(self.clearTextInputItemMain, 0)                             # run "clearTextInputItemMain" on next cycle
+                    else:
+                        if checkboxState == False:
+                            self.add_row(tempItemInput, tempItemName[0]['itemName'], '')                # add row to dataTable
+
+                        elif checkboxState == True:
+                            self.add_row(tempItemInput, tempItemName[0]['itemName'], '*')               # add row to dataTable
+                            self.root.get_screen('main').ids.longTermCheckbox.state = "normal"
+                            checkboxState = False
+
+                        Clock.schedule_once(self.clearTextInputItemMain, 0)                             # run "clearTextInputItemMain" on next cycle
 
             # RETURNS - itemID input
 
@@ -1440,16 +1427,14 @@ class MainApp(MDApp):
                 tempItemName = (itemDB.search(DBquery.itemID == tempItemInput))                     # Check item number is in item database
 
                 if tempItemName == "" or tempItemName == []:                                        # If item not in item DB
-                    self.root.get_screen('returns').ids.textErrorReturn.text = "Item doesn't exist"                 # Set message box
-                    Clock.schedule_once(self.resetTextErrorAll, 2)                                  # Clear message box after 2 seconds
-                    Clock.schedule_once(self.clearTextInputItemReturn, 0)                           # Clear return text input box and re-focus   
+                    self.doMessage("Item doesn't exist")
+                    Clock.schedule_once(self.clearItemReturn, 0)                                    # Clear return text input box and re-focus
 
                 else:
                     tempRead = (outDB.search(DBquery.itemID == tempItemInput))                      # Fine and store item from outDB
                     if tempRead == "" or tempRead == []:                                            # If item not in booked out DB
-                        self.root.get_screen('returns').ids.textErrorReturn.text = "Item not booked out"            # Set message box
-                        Clock.schedule_once(self.resetTextErrorAll, 2)                              # Clear message box after 2 seconds
-                        Clock.schedule_once(self.clearTextInputItemReturn, 0)                       # Clear return text input box and re-focus
+                        self.doMessage("Item not booked out")
+                        Clock.schedule_once(self.clearItemReturn, 0)                                # Clear return text input box and re-focus
 
                     else:
                         tempStartDateTS = (tempRead[0]['dateID'])                                   # Store date item was booked out
@@ -1481,7 +1466,7 @@ class MainApp(MDApp):
                         self.root.get_screen('returns').ids.returnBoxUserEmail.text += userEmail + "\n"
                         self.root.get_screen('returns').ids.returnBoxDate.text += tempStartDate + "\n"
 
-                        Clock.schedule_once(self.clearTextInputItemReturn, 0)                       # Clear return text input box and re-focus
+                        Clock.schedule_once(self.clearItemReturn, 0)                                # Clear return text input box and re-focus
             
             # ADD USER - userID input
 
@@ -1490,9 +1475,8 @@ class MainApp(MDApp):
                 tempUserID = (userDB.search(DBquery.userID == tempUserInput))
 
                 if tempUserID:
-                    self.root.get_screen('addUser').ids.textErrorAddUser.text = "User ID already exists"
-                    Clock.schedule_once(self.resetTextErrorAll, 2)
-                    Clock.schedule_once(self.addUserClear, 0)
+                    self.doMessage("User ID already exists")
+                    Clock.schedule_once(self.clearAddItem, 0)
 
                 else:
                     Clock.schedule_once(self.addUserToUserFirstName, 0)
@@ -1520,9 +1504,8 @@ class MainApp(MDApp):
                 tempItemID = (itemDB.search(DBquery.itemID == tempItemInput))
 
                 if tempItemID:
-                    self.root.get_screen('addItem').ids.textErrorAddItem.text = "Item ID already exists"
-                    Clock.schedule_once(self.resetTextErrorAll, 2)
-                    Clock.schedule_once(self.addItemClear, 0)
+                    self.doMessage("Item ID already exists")
+                    Clock.schedule_once(self.clearAddItem, 0)
 
                 else:
                     Clock.schedule_once(self.addItemToSerialNo, 0)
@@ -1551,8 +1534,8 @@ class MainApp(MDApp):
                 historyItemID = self.root.get_screen('history').ids.textInputHistoryItemID.text
                 historyUserEmail = ""
                 self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
-                self.goToScreenHistory()
-                Clock.schedule_once(self.cursorToItemIDReturn, 0)
+                Clock.schedule_once(self.refreshHistory, 0)
+                self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
                 
             elif self.root.get_screen('history').ids.textInputhistoryUserEmail.focus == True:
                 historyUserEmail = self.root.get_screen('history').ids.textInputhistoryUserEmail.text
@@ -1578,7 +1561,7 @@ class MainApp(MDApp):
 
                     self.showHistoryEmailList(userEmailList)
 
-                self.goToScreenHistory()
+                Clock.schedule_once(self.refreshHistory, 0)
                 Clock.schedule_once(self.cursorToUserEmailReturn, 0)
             
         elif keycode == 43:                                                                         # on "tab" key pressed
@@ -1596,27 +1579,25 @@ class MainApp(MDApp):
 
             elif self.root.get_screen('history').ids.textInputHistoryItemID.focus == True:
                 self.root.get_screen('history').ids.textInputhistoryUserEmail.focus = True
-                Clock.schedule_once(self.resetReturns, 0)
                 historyItemID = ""
                 historyUserEmail = ""
-                self.refreshHistory()
+                Clock.schedule_once(self.refreshHistory, 0)
 
             elif self.root.get_screen('history').ids.textInputhistoryUserEmail.focus == True:
                 self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
-                Clock.schedule_once(self.resetReturns, 0)
                 historyItemID = ""
                 historyUserEmail = ""
-                self.refreshHistory()
+                Clock.schedule_once(self.refreshHistory, 0)
             
             Clock.schedule_once(self.clearInputs, 0)
 
         elif keycode == 41:
             if (self.root.get_screen('history').ids.textInputHistoryItemID.focus == True) or (self.root.get_screen('history').ids.textInputhistoryUserEmail.focus == True):
                 self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
-                Clock.schedule_once(self.resetReturns, 0)
                 historyItemID = ""
                 historyUserEmail = ""
-                self.refreshHistory()
+                Clock.schedule_once(self.clearInputsESC, 0)
+                Clock.schedule_once(self.refreshHistory, 0)
             
             elif self.root.get_screen('returns').ids.textInputItem.focus == True:
                 self.root.get_screen('returns').ids.textInputItem.text = "" 
@@ -1641,6 +1622,8 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
         self.uiDict['box_list_email'].clear_widgets()
         self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.uiDict['box_list_historyEmail'].clear_widgets()
+        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
 
         if showNamesList:
             self.root.get_screen('main').ids.textInputUserName.focus = True
@@ -1653,6 +1636,11 @@ class MainApp(MDApp):
     def clearInputsESC(self, dt):
         global showNamesList
         global showEmailList
+        global showHistoryEmailList
+
+        showNamesList = False
+        showEmailList = False
+        showHistoryEmailList = False
 
         self.root.get_screen('main').ids.textInputUserID.text = ""                                  # clear input item box
         self.root.get_screen('main').ids.textInputUserName.text = ""
@@ -1663,6 +1651,8 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
         self.uiDict['box_list_email'].clear_widgets()
         self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.uiDict['box_list_historyEmail'].clear_widgets()
+        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
 
         if showNamesList:
             self.root.get_screen('main').ids.textInputUserName.focus = True
@@ -1682,14 +1672,13 @@ class MainApp(MDApp):
             Clock.schedule_once(self.resetTextInputItemMain, 0)
             Clock.schedule_once(self.cursorToUserID, 0)
 
-    def resetReturns(self, dt):
-        global historyItemID
-        global historyUserEmail
+    def doMessage(self, message):
+        self.root.get_screen('main').ids.textErrorMain.text = message
+        self.root.get_screen('returns').ids.textErrorReturn.text = message
+        self.root.get_screen('addUser').ids.textErrorAddUser.text = message
+        self.root.get_screen('addItem').ids.textErrorAddItem.text = message
 
-        historyItemID = ""
-        historyUserEmail = ""
-        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
-        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+        Clock.schedule_once(self.resetTextErrorAll, 2)
 
     def showNamesList(self, userNameList):
         global showNamesList
@@ -1706,8 +1695,7 @@ class MainApp(MDApp):
                 button = Button(text=userName, size_hint_y=None, height='50dp')
                 button.bind(on_release=self.on_btn_user_release)
                 self.uiDict['box_list'].add_widget(button)
-                
-            #nameWidth = (14*longestName)
+            
             userNameListLength = len(userNameList)
 
             if userNameListLength > 10:
@@ -1849,7 +1837,7 @@ class MainApp(MDApp):
         self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
         self.uiDict['box_list_historyEmail'].clear_widgets()
 
-        self.goToScreenHistory()
+        Clock.schedule_once(self.refreshHistory, 0)
         Clock.schedule_once(self.cursorToUserEmailReturn, 0)
 
     def processOutgoing(self):
@@ -1859,7 +1847,10 @@ class MainApp(MDApp):
         listLength = len(self.data_tables.row_data)
 
         if listLength == 0:
-            self.root.get_screen('main').ids.textErrorMain.text = "List empty"
+            self.doMessage("List empty")
+
+        elif self.root.get_screen('main').ids.textInputUserID.text == "":
+            self.doMessage("No User selected")
 
         else:
             i=0
@@ -1898,8 +1889,6 @@ class MainApp(MDApp):
                 i +=1
 
             self.remove_all_rows()
-            Clock.schedule_once(self.resetTextInputItemMain, 0)                                     # run "clearTextInputItemMain" on next cycle
-            Clock.schedule_once(self.cursorToUserID, 0)
 
     def exportBooked(self):
         global isWindows
@@ -1926,9 +1915,11 @@ class MainApp(MDApp):
     def resetTextInputItemMain(self, dt):
         global showNamesList
         global showEmailList
+        global showHistoryEmailList
 
         showNamesList = False
         showEmailList = False
+        showHistoryEmailList = False
 
         self.root.get_screen('main').ids.textInputUserID.text = ""                                  # clear input item box
         self.root.get_screen('main').ids.textInputItem.text = ""                            
@@ -1939,6 +1930,8 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
         self.uiDict['box_list_email'].clear_widgets()
         self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.uiDict['box_list_historyEmail'].clear_widgets()
+        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
 
     def cursorToUserID(self, dt):
         self.root.get_screen('main').ids.textInputUserID.focus = True                               # set focus to input user ID box
@@ -1949,80 +1942,20 @@ class MainApp(MDApp):
     def cursorToUserEmail(self, dt):
         self.root.get_screen('main').ids.textInputUserEmail.focus = True                            # set focus to input user email box
 
-    def cursorToItemIDReturn(self, dt):
-        self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
-
     def cursorToUserEmailReturn(self, dt):
         self.root.get_screen('history').ids.textInputhistoryUserEmail.focus = True
 
-    def resetTextErrorAll(self, dt):
-        self.root.get_screen('main').ids.textErrorMain.text = ""                                    # clear input item box
-        self.root.get_screen('returns').ids.textErrorReturn.text = ""                               # clear input item box
-        self.root.get_screen('addUser').ids.textErrorAddUser.text = ""                              # clear input item box
-        self.root.get_screen('addItem').ids.textErrorAddItem.text = ""                              # clear input item box
-
-    def clearTextInputItemReturn(self, dt):
-        self.root.get_screen('returns').ids.textInputItem.text = ""                                 # clear input item box
-        self.root.get_screen('returns').ids.textInputItem.focus = True                              # set focus to input item box
-
-    def clearAllItemReturn(self, dt):
-        self.root.get_screen('returns').ids.textInputItem.text = ""                                 # clear input item box
-        self.root.get_screen('returns').ids.returnBoxItemID.text = ""
-        self.root.get_screen('returns').ids.returnBoxItemName.text = ""
-        self.root.get_screen('returns').ids.returnBoxUserName.text = ""
-        self.root.get_screen('returns').ids.returnBoxUserEmail.text = ""
-        self.root.get_screen('returns').ids.returnBoxDate.text = ""
-        self.root.get_screen('returns').ids.textInputItem.focus = True                              # set focus to input item box
-
     def goToScreenMain(self):
-        global dateRangeFrom
-        global dateRangeTo
-        global historyItemID
-        global historyUserEmail
-
-        historyItemID = ""
-        historyUserEmail = ""
-        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
-        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
-        dateRangeFrom = 0
-        dateRangeTo = 0
-
         self.root.current = "main"
         self.remove_all_rows()
-        Clock.schedule_once(self.resetTextInputItemMain, 0)
-        Clock.schedule_once(self.cursorToUserID, 0)
         
-
     def goToScreenReturn(self):
-        global dateRangeFrom
-        global dateRangeTo
-        global historyItemID
-        global historyUserEmail
-
-        historyItemID = ""
-        historyUserEmail = ""
-        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
-        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
-        dateRangeFrom = 0
-        dateRangeTo = 0
-
         self.root.current = "returns"
-        Clock.schedule_once(self.clearAllItemReturn, 0)
+        Clock.schedule_once(self.clearItemReturn, 0)
 
     def goToScreenbookedOut(self):
         global bookedOutPath
-        global dateRangeFrom
-        global dateRangeTo
         global showLongTerm
-        global historyItemID
-        global historyUserEmail
-
-        historyItemID = ""
-        historyUserEmail = ""
-        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
-        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
-        dateRangeFrom = 0
-        dateRangeTo = 0
 
         self.root.current = "bookedout"
         outText = outDB.all()
@@ -2120,10 +2053,30 @@ class MainApp(MDApp):
         pdf.output(bookedOutPath)
 
     def goToScreenHistory(self):
-        self.refreshHistory()
+        global dateRangeFrom
+        global dateRangeTo
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+
+        dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
+        dateRangeTo = datetime.timestamp(datetime.now())
+
+        Clock.schedule_once(self.refreshHistory, 0)
         self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
 
-    def refreshHistory(self):
+    def resetReturns(self, dt):
+        global historyItemID
+        global historyUserEmail
+
+        historyItemID = ""
+        historyUserEmail = ""
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
+
+    def refreshHistory(self, dt):
         global historyPath
         global dateRangeFrom
         global dateRangeTo
@@ -2132,39 +2085,19 @@ class MainApp(MDApp):
 
         self.root.current = "history"
 
+        self.root.get_screen('history').ids.textInputHistoryItemID.text = historyItemID
+        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = historyUserEmail
+
+        self.root.get_screen('history').ids.historyFromDatePicker.text = (datetime.utcfromtimestamp(dateRangeFrom) + timedelta(days=1)).strftime('%Y-%m-%d')
+        self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
+
         if historyItemID == "":
             if historyUserEmail == "":
-                if dateRangeFrom > 0:
-                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
-                else:
-                    dateRangeTo = datetime.timestamp(datetime.now())
-                    dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
-                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
-
-                    self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
-                    self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
-
+                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
             else:
-                if dateRangeFrom > 0:
-                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))
-                else:
-                    dateRangeTo = datetime.timestamp(datetime.now())
-                    dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
-                    historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))
-
-                    self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
-                    self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
-
+                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))
         else:
-            if dateRangeFrom > 0:
-                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))
-            else:
-                dateRangeTo = datetime.timestamp(datetime.now())
-                dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
-                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))
-
-                self.root.get_screen('history').ids.historyFromDatePicker.text = datetime.utcfromtimestamp(dateRangeFrom).strftime('%Y-%m-%d')
-                self.root.get_screen('history').ids.historyToDatePicker.text = datetime.utcfromtimestamp(dateRangeTo).strftime('%Y-%m-%d')
+            historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))
             
         DBLength = len(historyText)
 
@@ -2234,34 +2167,10 @@ class MainApp(MDApp):
         pdf.output(historyPath)
 
     def goToScreenAddUser(self):
-        global dateRangeFrom
-        global dateRangeTo
-        global historyItemID
-        global historyUserEmail
-
-        historyItemID = ""
-        historyUserEmail = ""
-        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
-        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
-        dateRangeFrom = 0
-        dateRangeTo = 0
-
         self.root.current = "addUser"
         self.root.get_screen('addUser').ids.textInputAddUserID.focus = True
 
     def goToScreenAddItem(self):
-        global dateRangeFrom
-        global dateRangeTo
-        global historyItemID
-        global historyUserEmail
-
-        historyItemID = ""
-        historyUserEmail = ""
-        self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
-        self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
-        dateRangeFrom = 0
-        dateRangeTo = 0
-
         self.root.current = "addItem"
         self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
     
@@ -2293,37 +2202,16 @@ class MainApp(MDApp):
 
     def on_save(self, instance, value, date_range):
         global dateRangeFrom
-        global dateRangeTo
+        global dateRangeTo                 
 
-        lastDateRange = len(date_range) - 1
+        dateRangeFrom = time.mktime(date_range[0].timetuple())
+        dateRangeTo = time.mktime((date_range[len(date_range)-1] + timedelta(days=1)).timetuple() )     # Add a day to include selected end of date range
 
-        drf = date_range[0].timetuple()
-        drt = date_range[lastDateRange].timetuple()
-
-        dateRangeFrom = time.mktime(drf)
-        dateRangeTo = time.mktime(drt)
-
-        dateRangeFromPlus = (datetime.utcfromtimestamp(dateRangeFrom) + timedelta(days=1)).strftime('%Y-%m-%d')
-        dateRangeToPlus = (datetime.utcfromtimestamp(dateRangeTo) + timedelta(days=1)).strftime('%Y-%m-%d')
-        
-        self.root.get_screen('history').ids.historyFromDatePicker.text = dateRangeFromPlus
-        self.root.get_screen('history').ids.historyToDatePicker.text = dateRangeToPlus
-
-        self.goToScreenHistory()
-        Clock.schedule_once(self.cursorToItemIDReturn, 0)
+        Clock.schedule_once(self.refreshHistory, 0)
+        self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
 
     def on_cancel(self, instance, value):
         '''Events called when the "CANCEL" dialog box button is clicked.'''
-    
-    def historyDateReset(self):
-        global dateRangeFrom
-        global dateRangeTo
-        
-        dateRangeFrom = 0
-        dateRangeTo = 0
-
-        self.goToScreenHistory()
-        Clock.schedule_once(self.cursorToItemIDReturn, 0)
     
     def addUserSave(self):
         addUserID = self.root.get_screen('addUser').ids.textInputAddUserID.text
@@ -2331,14 +2219,13 @@ class MainApp(MDApp):
         addUserLastName = self.root.get_screen('addUser').ids.textInputAddUserLastName.text
         addUserEmail = self.root.get_screen('addUser').ids.textInputAddUserEmail.text
 
-        userDB.insert({'userID': addUserID,                                                         # Insert returned item to itemDB
+        userDB.insert({'userID': addUserID,                                                             # Insert returned item to itemDB
                         'firstName': addUserFirstName, 
                         'lastName': addUserLastName, 
                         'email': addUserEmail})
         
-        self.root.get_screen('addUser').ids.textErrorAddUser.text = "User added"
-        Clock.schedule_once(self.resetTextErrorAll, 2)
-        Clock.schedule_once(self.addUserClear, 0)
+        self.doMessage("User added")
+        Clock.schedule_once(self.clearAddItem, 0)
     
     def addItemSave(self):
         addItemID = self.root.get_screen('addItem').ids.textInputAddItemID.text
@@ -2353,28 +2240,37 @@ class MainApp(MDApp):
                         'itemModel': addItemModel, 
                         'serialNo': addItemSerial})
         
-        self.root.get_screen('addItem').ids.textErrorAddItem.text = "Item added"
-        Clock.schedule_once(self.resetTextErrorAll, 2)
-        Clock.schedule_once(self.addItemClearSome, 0)
+        self.doMessage("Item added")
+        Clock.schedule_once(self.clearAddItemSome, 0)
         
-    def addUserClear(self, dt):
+    def clearAddUser(self, dt):
         self.root.get_screen('addUser').ids.textInputAddUserID.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserFirstName.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserLastName.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserEmail.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserID.focus = True
         
-    def addItemClear(self, dt):
+    def clearAddItemSome(self, dt):
+        self.root.get_screen('addItem').ids.textInputAddItemID.text = ""
+        self.root.get_screen('addItem').ids.textInputAddItemSerialNo.text = ""
+        self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
+
+    def clearAddItem(self, dt):
         self.root.get_screen('addItem').ids.textInputAddItemID.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemName.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemMake.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemModel.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemSerialNo.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
-        
-    def addItemClearSome(self, dt):
-        self.root.get_screen('addItem').ids.textInputAddItemID.text = ""
-        self.root.get_screen('addItem').ids.textInputAddItemSerialNo.text = ""
-        self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
+
+    def clearItemReturn(self, dt):
+        self.root.get_screen('returns').ids.textInputItem.text = ""                                 # clear input item box
+        self.root.get_screen('returns').ids.textInputItem.focus = True                              # set focus to input item box
+
+    def resetTextErrorAll(self, dt):                                                                # clear ALL error boxes
+        self.root.get_screen('returns').ids.textErrorReturn.text = ""
+        self.root.get_screen('main').ids.textErrorMain.text = ""
+        self.root.get_screen('addUser').ids.textErrorAddUser.text = ""
+        self.root.get_screen('addItem').ids.textErrorAddItem.text = ""
 
 MainApp().run()
