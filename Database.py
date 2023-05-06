@@ -26,14 +26,11 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.uix.button import Button
-from kivy.uix.screenmanager import ScreenManager, Screen #, NoTransition
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
 from kivymd.app import MDApp
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.datatables import MDDataTable
-from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.pickers import MDDatePicker
-from kivymd.uix.textfield import MDTextField
 from datetime import datetime
 from datetime import timedelta
 from tinydb import TinyDB
@@ -1600,12 +1597,7 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.textInputUserEmail.text = ""
         self.root.get_screen('main').ids.textInputItem.text = ""
 
-        self.uiDict['box_list'].clear_widgets()
-        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}            # Move dropdown "User names" from "Collect" page, to off of the screen
-        self.uiDict['box_list_email'].clear_widgets()
-        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}           # Move dropdown "User Email" from "Collect" page, to off of the screen
-        self.uiDict['box_list_historyEmail'].clear_widgets()
-        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2} # Move dropdown "User Email" from "History" page, to off of the screen
+        self.clearWidgets()
 
         if showNamesList:                                                                               # If the dropdown list was for "User names" was open...
             self.root.get_screen('main').ids.textInputUserName.focus = True                             # return text cursor focus to the "User name" text input box
@@ -1629,12 +1621,7 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.textInputUserEmail.text = ""
         self.root.get_screen('main').ids.textInputItem.text = ""
 
-        self.uiDict['box_list'].clear_widgets()
-        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list_email'].clear_widgets()
-        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list_historyEmail'].clear_widgets()
-        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.clearWidgets()
 
         if showNamesList:
             self.root.get_screen('main').ids.textInputUserName.focus = True
@@ -1654,6 +1641,15 @@ class MainApp(MDApp):
             Clock.schedule_once(self.resetTextInputItemMain, 0)
             Clock.schedule_once(self.cursorToUserID, 0)
 
+    def clearWidgets(self):
+        self.uiDict['box_list'].clear_widgets()
+        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}            # Move dropdown "User names" from "Collect" page, to off of the screen
+        self.uiDict['box_list_email'].clear_widgets()
+        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}           # Move dropdown "User Email" from "Collect" page, to off of the screen
+        self.uiDict['box_list_historyEmail'].clear_widgets()
+        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2} # Move dropdown "User Email" from "History" page, to off of the screen
+
+
     def doMessage(self, message):
         self.root.get_screen('main').ids.textErrorMain.text = message
         self.root.get_screen('returns').ids.textErrorReturn.text = message
@@ -1668,7 +1664,9 @@ class MainApp(MDApp):
 
         if not showNamesList:
             showNamesList = True
-            self.uiDict['box_list'].clear_widgets()
+
+            self.clearWidgets()
+            #self.uiDict['box_list'].clear_widgets()
             
             for userName in userNameList:
                 if len(userName) > longestName:
@@ -1692,8 +1690,10 @@ class MainApp(MDApp):
                 self.root.get_screen('main').ids.box_list.size = (315, 0)
         else:
             showNamesList = False
-            self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
-            self.uiDict['box_list'].clear_widgets()
+            self.clearWidgets()
+
+            #self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
+            #self.uiDict['box_list'].clear_widgets()
 
     def on_btn_user_release(self, btn):
         global showNamesList
@@ -1711,9 +1711,11 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.textInputUserEmail.text = userEmail
 
         showNamesList = False
-        
-        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list'].clear_widgets()
+
+        self.clearWidgets()
+        #self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
+        #self.uiDict['box_list'].clear_widgets()
+
         Clock.schedule_once(self.clearTextInputItemMain, 0)
         #self.root.ids.scroll_view.scroll_y = 0
 
@@ -1723,7 +1725,9 @@ class MainApp(MDApp):
 
         if not showEmailList:
             showEmailList = True
-            self.uiDict['box_list_email'].clear_widgets()
+
+            self.clearWidgets()
+            #self.uiDict['box_list_email'].clear_widgets()
             
             for userEmail in userEmailList:
                 if len(userEmail) > longestEmail:
@@ -1748,8 +1752,10 @@ class MainApp(MDApp):
                 self.root.get_screen('main').ids.box_list_email.size = (315, 0)
         else:
             showEmailList = False
-            self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
-            self.uiDict['box_list_email'].clear_widgets()
+            self.clearWidgets()
+
+            #self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
+            #self.uiDict['box_list_email'].clear_widgets()
 
     def on_btn_user_release_email(self, btn):
         global showEmailList
@@ -1768,8 +1774,11 @@ class MainApp(MDApp):
 
         showEmailList = False
         
-        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list_email'].clear_widgets()
+        self.clearWidgets()
+
+        #self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        #self.uiDict['box_list_email'].clear_widgets()
+
         Clock.schedule_once(self.clearTextInputItemMain, 0)
         #self.root.ids.scroll_view.scroll_y = 0
 
@@ -1779,7 +1788,9 @@ class MainApp(MDApp):
 
         if not showHistoryEmailList:
             showHistoryEmailList = True
-            self.uiDict['box_list_historyEmail'].clear_widgets()
+
+            self.clearWidgets()
+            #self.uiDict['box_list_historyEmail'].clear_widgets()
             
             for userEmail in userEmailList:
                 if len(userEmail) > longestEmail:
@@ -1804,8 +1815,10 @@ class MainApp(MDApp):
                 self.root.get_screen('history').ids.box_list_historyEmail.size = (315, 0)
         else:
             showHistoryEmailList = False
-            self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
-            self.uiDict['box_list_historyEmail'].clear_widgets()
+            self.clearWidgets()
+
+            #self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
+            #self.uiDict['box_list_historyEmail'].clear_widgets()
 
     def on_btn_user_release_HistoryEmail(self, btn):
         global showHistoryEmailList
@@ -1815,9 +1828,10 @@ class MainApp(MDApp):
         self.root.get_screen('history').ids.textInputhistoryUserEmail.text = historyUserEmail
 
         showHistoryEmailList = False
-        
-        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list_historyEmail'].clear_widgets()
+        self.clearWidgets()
+
+        #self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        #self.uiDict['box_list_historyEmail'].clear_widgets()
 
         Clock.schedule_once(self.refreshHistory, 0)
         Clock.schedule_once(self.cursorToUserEmailReturn, 0)
@@ -1908,12 +1922,7 @@ class MainApp(MDApp):
         self.root.get_screen('main').ids.textInputUserName.text = ""
         self.root.get_screen('main').ids.textInputUserEmail.text = ""
 
-        self.uiDict['box_list'].clear_widgets()
-        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list_email'].clear_widgets()
-        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
-        self.uiDict['box_list_historyEmail'].clear_widgets()
-        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.clearWidgets()
 
     def cursorToUserID(self, dt):
         self.root.get_screen('main').ids.textInputUserID.focus = True                                   # set focus to input user ID box
