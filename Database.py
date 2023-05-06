@@ -6,6 +6,7 @@
 # pip3 install FPDF
 # pip3 install pyinstaller
 
+# To create a standalone App
 # python3 -m PyInstaller --onefile --windowed --icon dbIcon.icns Database.py
 
 #Windows
@@ -16,8 +17,8 @@
 # python -m pip install FPDF
 # python -m pip install pyinstaller
 
+# To create a standalone App
 # python -m PyInstaller --onefile --windowed --icon="dbIcon.ico" Database.py
-# python -m PyInstaller app.spec
 
 from kivy.clock import Clock
 from kivy.config import Config
@@ -87,7 +88,7 @@ showLongTerm = False
 historyItemID = ""
 historyUserEmail = ""
 
-if platform == "win32" or platform == "Windows" or platform == "win":                           # Tests if using Windows as different OS has different Printer code
+if platform == "win32" or platform == "Windows" or platform == "win":                                   # Tests if using Windows as different OS has different Printer code
     isWindows = True
     itemDB = TinyDB('C:\\Users\\Public\\Documents\\Database\\itemdb.json')
     userDB = TinyDB('C:\\Users\\Public\\Documents\\Database\\userdb.json')
@@ -1171,8 +1172,8 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Amber"
         self.uiDict = {}
         Window.bind(on_key_down = self.keyDown)
-        Clock.schedule_once(self.add_datatable, 0)                                                  # Clock.schedule_one runs the function after "0" seconds (ie next program cycle)
-        Clock.schedule_once(self.resetTextInputItemMain, 0)                                         # Sets the "focused" text box
+        Clock.schedule_once(self.add_datatable, 0)                                                      # Clock.schedule_one runs the function after "0" seconds (ie next program cycle)
+        Clock.schedule_once(self.resetTextInputItemMain, 0)                                             # Sets the "focused" text box
         Clock.schedule_once(self.cursorToUserID, 0)
         base_path = Path(__file__).parent
         image_path = (base_path / "./dbIcon.png").resolve()
@@ -1191,53 +1192,53 @@ class MainApp(MDApp):
                 ("No.", dp(13))
             ])
         
-        self.data_tables.bind(on_check_press=self.on_check_press)                                   # Binds the check box mouse click to the function "on_check_press"
-        self.root.get_screen('main').ids.data_layout.add_widget(self.data_tables)                   # Adds the DataTable to the GUI
+        self.data_tables.bind(on_check_press=self.on_check_press)                                       # Binds the check box mouse click to the function "on_check_press"
+        self.root.get_screen('main').ids.data_layout.add_widget(self.data_tables)                       # Adds the DataTable to the GUI
 
-    def add_row(self, tempItemInput, tempItemName, longTerm) -> None:                               # Adds an item to the DataTable
-        if len(self.data_tables.row_data) == 0:                                                     # If there are NO rows - no need to sort rows when there's only 1 row
+    def add_row(self, tempItemInput, tempItemName, longTerm) -> None:                                   # Adds an item to the DataTable
+        if len(self.data_tables.row_data) == 0:                                                         # If there are NO rows - no need to sort rows when there's only 1 row
             self.data_tables.add_row((tempItemInput, tempItemName, longTerm, (len(self.data_tables.row_data) + 1)))       # Add row with sorting number one more than the number of rows
         else:    
             self.data_tables.add_row((tempItemInput, tempItemName, longTerm, (len(self.data_tables.row_data) + 1)))       # Add row with sorting number one more than the number of rows
-            sortedData = sorted(self.data_tables.row_data, key = lambda x: x[3], reverse=True)      # Sort data so last item it top
-            self.data_tables.row_data = sortedData                                                  # Replace data with sorted data
+            sortedData = sorted(self.data_tables.row_data, key = lambda x: x[3], reverse=True)          # Sort data so last item it top
+            self.data_tables.row_data = sortedData                                                      # Replace data with sorted data
 
-    def remove_all_rows(self):                                                                      # Removes all rows from DataTable
-        while len(self.data_tables.row_data) > 0:                                                   # Finds the current number of rows in the DataTable
-            self.data_tables.remove_row(self.data_tables.row_data[-1])                              # Removes the correct number of rows in the DataTable
+    def remove_all_rows(self):                                                                          # Removes all rows from DataTable
+        while len(self.data_tables.row_data) > 0:                                                       # Finds the current number of rows in the DataTable
+            self.data_tables.remove_row(self.data_tables.row_data[-1])                                  # Removes the correct number of rows in the DataTable
         
-        Clock.schedule_once(self.resetTextInputItemMain, 0)                                         # run "clearTextInputItemMain" on next cycle
+        Clock.schedule_once(self.resetTextInputItemMain, 0)                                             # run "clearTextInputItemMain" on next cycle
         Clock.schedule_once(self.cursorToUserID, 0)
 
-    def on_check_press(self, instance_table, current_row):                                          # Mouse cliked a Check Mark in the DataTable
-        global runThisTime                                                                          # Check marks don't automatically get removed after the row is removed, when check marks are removed, it runs this code again, therefore needs to be bypassed when that happens.
+    def on_check_press(self, instance_table, current_row):                                              # Mouse cliked a Check Mark in the DataTable
+        global runThisTime                                                                              # Check marks don't automatically get removed after the row is removed, when check marks are removed, it runs this code again, therefore needs to be bypassed when that happens.
         
-        listLength = len(self.data_tables.row_data)                                                 # Store number of dataTable rows
+        listLength = len(self.data_tables.row_data)                                                     # Store number of dataTable rows
         listLengthOG = len(self.data_tables.row_data)
 
         i=0
-        if runThisTime:                                                                             # Bypass setup for repeat *see above
+        if runThisTime:                                                                                 # Bypass setup for repeat *see above
             runThisTime = False
-            while i < listLength:                                                                   # Iterate through rows
-                if self.data_tables.row_data[i][0] == current_row[0]:                               # Compare row i itemID to the row checked itemID to find which row has been clicked
-                    self.data_tables.table_data.select_all("normal")                                # Remove all check marks from DataTable
-                    self.data_tables.remove_row(self.data_tables.row_data[i])                       # If they equal, remove the current row iteration
-                    listLength -= 1                                                                 # minus 1 from the length of the list as we've just removed a row
+            while i < listLength:                                                                       # Iterate through rows
+                if self.data_tables.row_data[i][0] == current_row[0]:                                   # Compare row i itemID to the row checked itemID to find which row has been clicked
+                    self.data_tables.table_data.select_all("normal")                                    # Remove all check marks from DataTable
+                    self.data_tables.remove_row(self.data_tables.row_data[i])                           # If they equal, remove the current row iteration
+                    listLength -= 1                                                                     # minus 1 from the length of the list as we've just removed a row
 
                 else:
                     self.data_tables.update_row(
-                        self.data_tables.row_data[i],                                               # For row i
-                        [self.data_tables.row_data[i][0],                                           # Old row data - itemID
-                        self.data_tables.row_data[i][1],                                            # Old row data - itemName
-                        self.data_tables.row_data[i][2],                                            # Old row data - longTerm
-                        (listLengthOG - i -1)])                                                     # New row data
+                        self.data_tables.row_data[i],                                                   # For row i
+                        [self.data_tables.row_data[i][0],                                               # Old row data - itemID
+                        self.data_tables.row_data[i][1],                                                # Old row data - itemName
+                        self.data_tables.row_data[i][2],                                                # Old row data - longTerm
+                        (listLengthOG - i -1)])                                                         # New row data
                                                                                                 
                 i +=1
-        else:                                                                                       # Increment i
+        else:                                                                                           # Increment i
             runThisTime = True
             Clock.schedule_once(self.clearTextInputItemMain, 0)
     
-    def on_checkbox_active(self, checkbox, value):                                                  # Toggles "longTerm" bookings mode on checking out of item
+    def on_checkbox_active(self, checkbox, value):                                                      # Toggles "longTerm" bookings mode on checking out of item
         global checkboxState
         if value:
             checkboxState = True
@@ -1245,7 +1246,7 @@ class MainApp(MDApp):
             checkboxState = False
         Clock.schedule_once(self.clearTextInputItemMain, 0.3)
         
-    def on_checkbox_active_bookedOut(self, checkbox, value):                                        # Toggles "longTerm" bookings view on "Booked Out"
+    def on_checkbox_active_bookedOut(self, checkbox, value):                                            # Toggles "longTerm" bookings view on "Booked Out"
         global showLongTerm
         if value:
             showLongTerm = True
@@ -1254,27 +1255,27 @@ class MainApp(MDApp):
             showLongTerm = False
             self.goToScreenBookedOut()
 
-    def keyDown(self, instance, keyboard, keycode, text, modifiers):                                # Activates everytime a key pressed
+    def keyDown(self, instance, keyboard, keycode, text, modifiers):                                    # Activates everytime a key pressed
         global userID
         global checkboxState
         global historyItemID
         global historyUserEmail
 
-        if keycode == 40 or keycode == 88:                                                          # on "return" key pressed
+        if keycode == 40 or keycode == 88:                                                              # on "return" key pressed
 
             # BOOKING - userID input
 
-            if self.root.get_screen('main').ids.textInputUserID.focus == True:                      # If "userID" input box on the main page has keyboard focus
-                userID = (self.root.get_screen('main').ids.textInputUserID.text)                    # Get the text of the "userID" input box on the main page
+            if self.root.get_screen('main').ids.textInputUserID.focus == True:                          # If "userID" input box on the main page has keyboard focus
+                userID = (self.root.get_screen('main').ids.textInputUserID.text)                        # Get the text of the "userID" input box on the main page
                 if len(userID) > 5:
                     userID = userID.rstrip(userID[-1])
                     foundID = userDB.search(DBquery.userID.search(userID))
 
                     userID = (foundID[0]['userID'])
 
-                getUser = (userDB.search(DBquery.userID == userID))                                 # search for user number in item database
+                getUser = (userDB.search(DBquery.userID == userID))                                     # search for user number in item database
                 
-                if not getUser:                                                                     # If user not found...                     # Remove text in main page message box after 2 seconds
+                if not getUser:                                                                         # If user not found...                     # Remove text in main page message box after 2 seconds
                     self.doMessage("No user found")
                     Clock.schedule_once(self.resetTextInputItemMain, 0)
                     Clock.schedule_once(self.cursorToUserID, 0)
@@ -1363,7 +1364,7 @@ class MainApp(MDApp):
 
             # BOOKING - itemID input
 
-            elif self.root.get_screen('main').ids.textInputItem.focus == True:                      # If enter pressed inside main screen inputItem box
+            elif self.root.get_screen('main').ids.textInputItem.focus == True:                          # If enter pressed inside main screen inputItem box
                 if self.root.get_screen('main').ids.textInputUserID.text == "":
                     self.doMessage("No User selected")
                     Clock.schedule_once(self.resetTextInputItemMain, 0)
@@ -1403,23 +1404,23 @@ class MainApp(MDApp):
 
             # RETURNS - itemID input
 
-            elif self.root.get_screen('returns').ids.textInputItem.focus == True:                   # If enter pressed on 'Returns' screen item input box: 
-                tempItemInput = (self.root.get_screen('returns').ids.textInputItem.text)            # get text in inputItem box
-                tempItemName = (itemDB.search(DBquery.itemID == tempItemInput))                     # Check item number is in item database
+            elif self.root.get_screen('returns').ids.textInputItem.focus == True:                       # If enter pressed on 'Returns' screen item input box: 
+                tempItemInput = (self.root.get_screen('returns').ids.textInputItem.text)                # get text in inputItem box
+                tempItemName = (itemDB.search(DBquery.itemID == tempItemInput))                         # Check item number is in item database
 
-                if tempItemName == "" or tempItemName == []:                                        # If item not in item DB
+                if tempItemName == "" or tempItemName == []:                                            # If item not in item DB
                     self.doMessage("Item doesn't exist")
-                    Clock.schedule_once(self.clearItemReturn, 0)                                    # Clear return text input box and re-focus
+                    Clock.schedule_once(self.clearItemReturn, 0)                                        # Clear return text input box and re-focus
 
                 else:
-                    tempRead = (outDB.search(DBquery.itemID == tempItemInput))                      # Fine and store item from outDB
-                    if tempRead == "" or tempRead == []:                                            # If item not in booked out DB
+                    tempRead = (outDB.search(DBquery.itemID == tempItemInput))                          # Fine and store item from outDB
+                    if tempRead == "" or tempRead == []:                                                # If item not in booked out DB
                         self.doMessage("Item not booked out")
-                        Clock.schedule_once(self.clearItemReturn, 0)                                # Clear return text input box and re-focus
+                        Clock.schedule_once(self.clearItemReturn, 0)                                    # Clear return text input box and re-focus
 
                     else:
-                        tempStartDateTS = (tempRead[0]['dateID'])                                   # Store date item was booked out
-                        userID = (tempRead[0]['userID'])                                            # Store userID item was booked out to
+                        tempStartDateTS = (tempRead[0]['dateID'])                                       # Store date item was booked out
+                        userID = (tempRead[0]['userID'])                                                # Store userID item was booked out to
                         
                         getUser = (userDB.search(DBquery.userID == userID))
                         userFirst = (getUser[0]['firstName'])
@@ -1432,10 +1433,10 @@ class MainApp(MDApp):
 
                         tempStartDate = datetime.utcfromtimestamp(tempStartDateTS).strftime('%Y-%m-%d - %H:%M:%S')
 
-                        outDB.remove(where('itemID') == tempItemInput)                              # Remove item from outDB
-                        historyDB.insert({'itemID': tempItemInput,                                  # Insert returned item to historyDB
+                        outDB.remove(where('itemID') == tempItemInput)                                  # Remove item from outDB
+                        historyDB.insert({'itemID': tempItemInput,                                      # Insert returned item to historyDB
                                         'userID': userID, 
-                                        'userFirst': userFirst,                                     # Store name & email in case they're later removed from userDB
+                                        'userFirst': userFirst,                                         # Store name & email in case they're later removed from userDB
                                         'userLast': userLast, 
                                         'email': userEmail,
                                         'startDate': tempStartDateTS, 
@@ -1447,7 +1448,7 @@ class MainApp(MDApp):
                         self.root.get_screen('returns').ids.returnBoxUserEmail.text += userEmail + "\n"
                         self.root.get_screen('returns').ids.returnBoxDate.text += tempStartDate + "\n"
 
-                        Clock.schedule_once(self.clearItemReturn, 0)                                # Clear return text input box and re-focus
+                        Clock.schedule_once(self.clearItemReturn, 0)                                    # Clear return text input box and re-focus
             
             # ADD USER - userID input
 
@@ -1545,7 +1546,7 @@ class MainApp(MDApp):
                 Clock.schedule_once(self.refreshHistory, 0)
                 Clock.schedule_once(self.cursorToUserEmailReturn, 0)
             
-        elif keycode == 43:                                                                         # on "tab" key pressed
+        elif keycode == 43:                                                                             # on "tab" key pressed
             if self.root.get_screen('main').ids.textInputUserID.focus == True:
                 self.root.get_screen('main').ids.textInputUserName.focus = True
                 self.root.get_screen('main').ids.textInputUserName.text = ""
@@ -1594,24 +1595,24 @@ class MainApp(MDApp):
         global showNamesList
         global showEmailList
 
-        self.root.get_screen('main').ids.textInputUserID.text = ""                                  # clear input item box
+        self.root.get_screen('main').ids.textInputUserID.text = ""                                      # clear input item box
         self.root.get_screen('main').ids.textInputUserName.text = ""
         self.root.get_screen('main').ids.textInputUserEmail.text = ""
         self.root.get_screen('main').ids.textInputItem.text = ""
 
         self.uiDict['box_list'].clear_widgets()
-        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.root.get_screen('main').ids.userListDD.pos_hint={"center_x": 20, "center_y": 2}            # Move dropdown "User names" from "Collect" page, to off of the screen
         self.uiDict['box_list_email'].clear_widgets()
-        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.root.get_screen('main').ids.emailListDD.pos_hint={"center_x": 20, "center_y": 2}           # Move dropdown "User Email" from "Collect" page, to off of the screen
         self.uiDict['box_list_historyEmail'].clear_widgets()
-        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
+        self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2} # Move dropdown "User Email" from "History" page, to off of the screen
 
-        if showNamesList:
-            self.root.get_screen('main').ids.textInputUserName.focus = True
+        if showNamesList:                                                                               # If the dropdown list was for "User names" was open...
+            self.root.get_screen('main').ids.textInputUserName.focus = True                             # return text cursor focus to the "User name" text input box
             showNamesList = False
 
-        elif showEmailList:
-            self.root.get_screen('main').ids.textInputUserEmail.focus = True
+        elif showEmailList:                                                                             # If the dropdown list was for "User emails" was open...
+            self.root.get_screen('main').ids.textInputUserEmail.focus = True                            # return text cursor focus to the "User email" text input box
             showEmailList = False
         
     def clearInputsESC(self, dt):
@@ -1623,7 +1624,7 @@ class MainApp(MDApp):
         showEmailList = False
         showHistoryEmailList = False
 
-        self.root.get_screen('main').ids.textInputUserID.text = ""                                  # clear input item box
+        self.root.get_screen('main').ids.textInputUserID.text = ""                                      # clear input item box
         self.root.get_screen('main').ids.textInputUserName.text = ""
         self.root.get_screen('main').ids.textInputUserEmail.text = ""
         self.root.get_screen('main').ids.textInputItem.text = ""
@@ -1840,30 +1841,30 @@ class MainApp(MDApp):
                 itemID = lineData[0]
                 longTerm = lineData[2]
 
-                outCheck = (outDB.search(DBquery.itemID == itemID))                                 # Check if item already booked out
+                outCheck = (outDB.search(DBquery.itemID == itemID))                                     # Check if item already booked out
 
-                if not outCheck:                                                                    # If not booked out
+                if not outCheck:                                                                        # If not booked out
                     outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
 
-                else:                                                                               # If booked out already
-                    tempRead = (outDB.search(DBquery.itemID == itemID))                             # Find item in outDB
-                    tempUserID = (tempRead[0]['userID'])                                            # Read and store who it was booked out to
-                    tempStartDate = (tempRead[0]['dateID'])                                         # Read and store date booked out
+                else:                                                                                   # If booked out already
+                    tempRead = (outDB.search(DBquery.itemID == itemID))                                 # Find item in outDB
+                    tempUserID = (tempRead[0]['userID'])                                                # Read and store who it was booked out to
+                    tempStartDate = (tempRead[0]['dateID'])                                             # Read and store date booked out
 
                     getUser = (userDB.search(DBquery.userID == tempUserID))
                     tempUserFirst = (getUser[0]['firstName'])
                     tempUserLast = (getUser[0]['lastName'])
                     tempUserEmail = (getUser[0]['email'])
 
-                    outDB.remove(where('itemID') == itemID)                                         # Remove item from outDB
+                    outDB.remove(where('itemID') == itemID)                                             # Remove item from outDB
 
                     historyDB.insert({'itemID': itemID, 
                                     'userID': tempUserID, 
-                                    'userFirst': tempUserFirst,                                     # Store name & email in case they're later removed from userDB
+                                    'userFirst': tempUserFirst,                                         # Store name & email in case they're later removed from userDB
                                     'userLast': tempUserLast, 
                                     'email': tempUserEmail,
                                     'startDate': tempStartDate, 
-                                    'returnDate': currentDate})                                     # Insert old booking in to historyDB
+                                    'returnDate': currentDate})                                         # Insert old booking in to historyDB
                     
                     outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
 
@@ -1890,8 +1891,8 @@ class MainApp(MDApp):
             subprocess.run(['open', historyPath], check=True)
 
     def clearTextInputItemMain(self, dt):
-        self.root.get_screen('main').ids.textInputItem.text = ""                                    # clear input item box
-        self.root.get_screen('main').ids.textInputItem.focus = True                                 # set focus to input item box
+        self.root.get_screen('main').ids.textInputItem.text = ""                                        # clear input item box
+        self.root.get_screen('main').ids.textInputItem.focus = True                                     # set focus to input item box
     
     def resetTextInputItemMain(self, dt):
         global showNamesList
@@ -1902,7 +1903,7 @@ class MainApp(MDApp):
         showEmailList = False
         showHistoryEmailList = False
 
-        self.root.get_screen('main').ids.textInputUserID.text = ""                                  # clear input item box
+        self.root.get_screen('main').ids.textInputUserID.text = ""                                      # clear input item box
         self.root.get_screen('main').ids.textInputItem.text = ""                            
         self.root.get_screen('main').ids.textInputUserName.text = ""
         self.root.get_screen('main').ids.textInputUserEmail.text = ""
@@ -1915,32 +1916,32 @@ class MainApp(MDApp):
         self.root.get_screen('history').ids.historyEmailListDD.pos_hint={"center_x": 20, "center_y": 2}
 
     def cursorToUserID(self, dt):
-        self.root.get_screen('main').ids.textInputUserID.focus = True                               # set focus to input user ID box
+        self.root.get_screen('main').ids.textInputUserID.focus = True                                   # set focus to input user ID box
 
     def cursorToUserName(self, dt):
-        self.root.get_screen('main').ids.textInputUserName.focus = True                             # set focus to input user name box
+        self.root.get_screen('main').ids.textInputUserName.focus = True                                 # set focus to input user name box
 
     def cursorToUserEmail(self, dt):
-        self.root.get_screen('main').ids.textInputUserEmail.focus = True                            # set focus to input user email box
+        self.root.get_screen('main').ids.textInputUserEmail.focus = True                                # set focus to input user email box
 
     def cursorToUserEmailReturn(self, dt):
         self.root.get_screen('history').ids.textInputhistoryUserEmail.focus = True
 
-    def goToScreenMain(self):                                                                       # Change visible page to "Collect"
+    def goToScreenMain(self):                                                                           # Change visible page to "Collect"
         self.root.current = "main"
         self.remove_all_rows()
         
-    def goToScreenReturn(self):                                                                     # Change visible page to "Return"
+    def goToScreenReturn(self):                                                                         # Change visible page to "Return"
         self.root.current = "returns"
         Clock.schedule_once(self.clearItemReturn, 0)
 
-    def goToScreenBookedOut(self):                                                                  # Change visible page to "Booked Out"
+    def goToScreenBookedOut(self):                                                                      # Change visible page to "Booked Out"
         global bookedOutPath
         global showLongTerm
 
         self.root.current = "bookedout"
         outText = outDB.all()
-        DBLength = len(outDB)                                                                       # Store length of booked out database
+        DBLength = len(outDB)                                                                           # Store length of booked out database
 
         pdf = FPDF('P', 'pt', 'A4')
         pdf.add_page()
@@ -1979,7 +1980,7 @@ class MainApp(MDApp):
 
                 userID = (foundID[0]['userID'])
             
-            getUser = (userDB.search(DBquery.userID == userID))                                     # search for user number in item database
+            getUser = (userDB.search(DBquery.userID == userID))                                         # search for user number in item database
 
             userName = (getUser[0]['firstName']) + " " + (getUser[0]['lastName'])
             userEmail = (getUser[0]['email'])
