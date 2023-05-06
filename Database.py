@@ -5,6 +5,7 @@
 # pip3 install tinydb
 # pip3 install FPDF
 # pip3 install pyinstaller
+
 # python3 -m PyInstaller --onefile --windowed --icon dbIcon.icns Database.py
 
 #Windows
@@ -152,7 +153,7 @@ WindowManager:
             pos_hint: {"center_x": .435, "center_y": .97}
             size_hint: (0.1), (0.01)
             font_size: "18sp"
-            on_release: app.goToScreenbookedOut()
+            on_release: app.goToScreenBookedOut()
 
         MDFlatButton:
             id: historyScreenButton
@@ -413,7 +414,7 @@ WindowManager:
             pos_hint: {"center_x": .435, "center_y": .97}
             size_hint: (0.1), (0.01)
             font_size: "18sp"
-            on_release: app.goToScreenbookedOut()
+            on_release: app.goToScreenBookedOut()
 
         MDFlatButton:
             id: historyScreenButton
@@ -582,7 +583,7 @@ WindowManager:
             pos_hint: {"center_x": .435, "center_y": .97}
             size_hint: (0.1), (0.01)
             font_size: "18sp"
-            on_release: app.goToScreenbookedOut()
+            on_release: app.goToScreenBookedOut()
 
         MDFlatButton:
             id: historyScreenButton
@@ -780,7 +781,7 @@ WindowManager:
             pos_hint: {"center_x": .435, "center_y": .97}
             size_hint: (0.1), (0.01)
             font_size: "18sp"
-            on_release: app.goToScreenbookedOut()
+            on_release: app.goToScreenBookedOut()
 
         MDFlatButton:
             id: historyScreenButton
@@ -924,7 +925,7 @@ WindowManager:
                 pos_hint: {"center_x": .435, "center_y": .97}
                 size_hint: (0.1), (0.01)
                 font_size: "18sp"
-                on_release: app.goToScreenbookedOut()
+                on_release: app.goToScreenBookedOut()
 
             MDFlatButton:
                 id: historyScreenButton
@@ -1051,7 +1052,7 @@ WindowManager:
                 pos_hint: {"center_x": .435, "center_y": .97}
                 size_hint: (0.1), (0.01)
                 font_size: "18sp"
-                on_release: app.goToScreenbookedOut()
+                on_release: app.goToScreenBookedOut()
 
             MDFlatButton:
                 id: historyScreenButton
@@ -1190,7 +1191,6 @@ class MainApp(MDApp):
                 ("No.", dp(13))
             ])
         
-        #self.data_tables.bind(on_row_presss=self.on_row_press)
         self.data_tables.bind(on_check_press=self.on_check_press)                                   # Binds the check box mouse click to the function "on_check_press"
         self.root.get_screen('main').ids.data_layout.add_widget(self.data_tables)                   # Adds the DataTable to the GUI
 
@@ -1237,25 +1237,6 @@ class MainApp(MDApp):
             runThisTime = True
             Clock.schedule_once(self.clearTextInputItemMain, 0)
     
-    def on_row_press(self, instance_table, instance_row):
-        row_num = int(instance_row.index/len(instance_table.column_data))
-        row_data = instance_table.row_data[row_num]
-        
-        if row_data['longTerm'] == "*":
-            self.data_tables.update_row(
-                self.data_tables.row_data[i],                                                       # For row i
-                [self.data_tables.row_data[i][0],                                                   # Old row data - itemID
-                self.data_tables.row_data[i][1],                                                    # Old row data - itemName
-                "",                                                                                 # New row data - longTerm
-                self.data_tables.row_data[i][3]])                                                   # New row data
-        else:
-            self.data_tables.update_row(
-                self.data_tables.row_data[i],                                                       # For row i
-                [self.data_tables.row_data[i][0],                                                   # Old row data - itemID
-                self.data_tables.row_data[i][1],                                                    # Old row data - itemName
-                "*",                                                                                # New row data - longTerm
-                self.data_tables.row_data[i][3]])                                                   # New row data
-
     def on_checkbox_active(self, checkbox, value):                                                  # Toggles "longTerm" bookings mode on checking out of item
         global checkboxState
         if value:
@@ -1268,10 +1249,10 @@ class MainApp(MDApp):
         global showLongTerm
         if value:
             showLongTerm = True
-            self.goToScreenbookedOut()
+            self.goToScreenBookedOut()
         else:
             showLongTerm = False
-            self.goToScreenbookedOut()
+            self.goToScreenBookedOut()
 
     def keyDown(self, instance, keyboard, keycode, text, modifiers):                                # Activates everytime a key pressed
         global userID
@@ -1945,21 +1926,21 @@ class MainApp(MDApp):
     def cursorToUserEmailReturn(self, dt):
         self.root.get_screen('history').ids.textInputhistoryUserEmail.focus = True
 
-    def goToScreenMain(self):
+    def goToScreenMain(self):                                                                       # Change visible page to "Collect"
         self.root.current = "main"
         self.remove_all_rows()
         
-    def goToScreenReturn(self):
+    def goToScreenReturn(self):                                                                     # Change visible page to "Return"
         self.root.current = "returns"
         Clock.schedule_once(self.clearItemReturn, 0)
 
-    def goToScreenbookedOut(self):
+    def goToScreenBookedOut(self):                                                                  # Change visible page to "Booked Out"
         global bookedOutPath
         global showLongTerm
 
         self.root.current = "bookedout"
         outText = outDB.all()
-        DBLength = len(outDB)
+        DBLength = len(outDB)                                                                       # Store length of booked out database
 
         pdf = FPDF('P', 'pt', 'A4')
         pdf.add_page()
@@ -2052,8 +2033,8 @@ class MainApp(MDApp):
 
         pdf.output(bookedOutPath)
 
-    def goToScreenHistory(self):
-        global dateRangeFrom
+    def goToScreenHistory(self):                                                                        # Prepare to change visible page to "History"
+        global dateRangeFrom                                                                            # Separated from the "Refresh History" so page can be refreshed without running the code in this function each time
         global dateRangeTo
         global historyItemID
         global historyUserEmail
@@ -2061,13 +2042,13 @@ class MainApp(MDApp):
         historyItemID = ""
         historyUserEmail = ""
 
-        dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))
+        dateRangeFrom = datetime.timestamp(datetime.now() - timedelta(days=28))                         # Set default "Date Range" from 28 days ago, until today
         dateRangeTo = datetime.timestamp(datetime.now())
 
         Clock.schedule_once(self.refreshHistory, 0)
         self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
 
-    def resetReturns(self, dt):
+    def resetReturns(self, dt):                                                                         # Clear search text boxes on "Return" page
         global historyItemID
         global historyUserEmail
 
@@ -2076,7 +2057,7 @@ class MainApp(MDApp):
         self.root.get_screen('history').ids.textInputHistoryItemID.text = ""
         self.root.get_screen('history').ids.textInputhistoryUserEmail.text = ""
 
-    def refreshHistory(self, dt):
+    def refreshHistory(self, dt):                                                                       # Refresh "History" page if date range or search text boxes are changed
         global historyPath
         global dateRangeFrom
         global dateRangeTo
@@ -2093,36 +2074,36 @@ class MainApp(MDApp):
 
         if historyItemID == "":
             if historyUserEmail == "":
-                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))
+                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo))                                            # If itemID AND userID search boxes are blank, fetch all history items within date period
             else:
-                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))
+                historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.email == historyUserEmail))      # If itemID search box is blank, but userID is populated, fetch userID history items within date period
         else:
-            historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))
+            historyText = historyDB.search((DBquery.startDate > dateRangeFrom) & (DBquery.startDate <= dateRangeTo) & (DBquery.itemID == historyItemID))            # If itemID is populated,, fetch history for itemID within date period
             
         DBLength = len(historyText)
 
-        pdf = FPDF('P', 'pt', 'A4')
-        pdf.add_page()
-        pdf.set_font('helvetica', size=7)
+        pdf = FPDF('P', 'pt', 'A4')                                                                     # Create PDF document, portrait, size units "pt", "A4" size
+        pdf.add_page()                                                                                  # Add page to PDF document
+        pdf.set_font('helvetica', size=7)                                                               # Set font
 
-        self.root.get_screen('history').ids.historyBoxItemID.text = ""
+        self.root.get_screen('history').ids.historyBoxItemID.text = ""                                  # Clear "History" list
         self.root.get_screen('history').ids.historyBoxItemName.text = ""
         self.root.get_screen('history').ids.historyBoxUserName.text = ""
         self.root.get_screen('history').ids.historyBoxUserEmail.text = ""
         self.root.get_screen('history').ids.historyBoxDateOut.text = ""
         self.root.get_screen('history').ids.historyBoxDateIn.text = ""
 
-        pdf.set_fill_color(240,240,240)
+        pdf.set_fill_color(240,240,240)                                                                 # Set text background to light grey
 
-        pdf.cell(w=30, h=9, txt= "Item ID", fill = True)
+        pdf.cell(w=30, h=9, txt= "Item ID", fill = True)                                                # Create PDF document headers
         pdf.cell(w=200, h=9, txt= "Item Name", fill = True)
         pdf.cell(w=100, h=9, txt= "User", fill = True)
         pdf.cell(w=120, h=9, txt= "Email", fill = True)
         pdf.cell(w=45, h=9, txt= "Date Out", fill = True)
-        pdf.cell(w=45, h=9, txt= "Date In", ln=(1), fill = True)
+        pdf.cell(w=45, h=9, txt= "Date In", ln=(1), fill = True)                                        # ln=(1) adds carriage return to end of headers
 
         i=0
-        while i < DBLength:
+        while i < DBLength:                                                                             # Iterate through the DB from userID / itemID / date range 
             itemID = historyText[i]['itemID']
             userID = historyText[i]['userID']
             userFirst = historyText[i]['userFirst']
@@ -2131,89 +2112,89 @@ class MainApp(MDApp):
             startDate = historyText[i]['startDate']
             returnDate = historyText[i]['returnDate']
 
-            getItem = (itemDB.search(DBquery.itemID == itemID))
+            getItem = (itemDB.search(DBquery.itemID == itemID))                                         # Fetch item data from itemDB matching itemID in history
 
-            if getItem == "" or getItem == []:
+            if getItem == "" or getItem == []:                                                          # If no item found in itemDB with matching itemID
                 pass
             else:
-                itemName = (getItem[0]['itemName'])
+                itemName = (getItem[0]['itemName'])                                                     # If item found, store item's name
 
             userName = (userFirst + " " + userLast)
 
-            dateOut = datetime.utcfromtimestamp(startDate).strftime('%Y-%m-%d')
+            dateOut = datetime.utcfromtimestamp(startDate).strftime('%Y-%m-%d')                         # Convert from stored 'timestamp' to "year - month - day"
             dateIn = datetime.utcfromtimestamp(returnDate).strftime('%Y-%m-%d')
 
-            if ((i % 2) == 0):
+            if ((i % 2) == 0):                                                                          # If PDF line is even, set text line background to white
                 pdf.set_fill_color(255,255,255)
-            else:
+            else:                                                                                       # If PDF line is odd, set text line background to light grey
                 pdf.set_fill_color(240,240,240)
             
-            pdf.cell(w=30, h=9, txt= itemID, fill = True)
+            pdf.cell(w=30, h=9, txt= itemID, fill = True)                                               # Populate PDF line with data and fill the line with colour
             pdf.cell(w=200, h=9, txt= itemName, fill = True)
             pdf.cell(w=100, h=9, txt= userName, fill = True)
             pdf.cell(w=120, h=9, txt= userEmail, fill = True)
             pdf.cell(w=45, h=9, txt= dateOut, fill = True)
             pdf.cell(w=45, h=9, txt= dateIn, ln=(1), fill = True)
 
-            self.root.get_screen('history').ids.historyBoxItemID.text += itemID + "\n"
+            self.root.get_screen('history').ids.historyBoxItemID.text += itemID + "\n"                  # Print data on the screen too
             self.root.get_screen('history').ids.historyBoxItemName.text += itemName + "\n"
             self.root.get_screen('history').ids.historyBoxUserName.text += userName + "\n"
             self.root.get_screen('history').ids.historyBoxUserEmail.text += userEmail + "\n"
             self.root.get_screen('history').ids.historyBoxDateOut.text += dateOut + "\n"
             self.root.get_screen('history').ids.historyBoxDateIn.text += dateIn + "\n"
 
-            i +=1
+            i +=1                                                                                       # Increment iteration
 
         pdf.output(historyPath)
 
-    def goToScreenAddUser(self):
+    def goToScreenAddUser(self):                                                                        # Change visible page to "Add User"
         self.root.current = "addUser"
         self.root.get_screen('addUser').ids.textInputAddUserID.focus = True
 
-    def goToScreenAddItem(self):
+    def goToScreenAddItem(self):                                                                        # Change visible page to "Add Item"
         self.root.current = "addItem"
         self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
     
     def addUserToUserFirstName(self, dt):
-        self.root.get_screen('addUser').ids.textInputAddUserFirstName.focus = True                  # set focus to 
+        self.root.get_screen('addUser').ids.textInputAddUserFirstName.focus = True                      # set focus to 
 
     def addUserToUserLastName(self, dt):
-        self.root.get_screen('addUser').ids.textInputAddUserLastName.focus = True                   # set focus to 
+        self.root.get_screen('addUser').ids.textInputAddUserLastName.focus = True                       # set focus to 
 
     def addUserToUserEmail(self, dt):
-        self.root.get_screen('addUser').ids.textInputAddUserEmail.focus = True                      # set focus to 
+        self.root.get_screen('addUser').ids.textInputAddUserEmail.focus = True                          # set focus to 
     
     def addItemToItemName(self, dt):
-        self.root.get_screen('addItem').ids.textInputAddItemName.focus = True                       # set focus to 
+        self.root.get_screen('addItem').ids.textInputAddItemName.focus = True                           # set focus to 
 
     def addItemToItemMake(self, dt):
-        self.root.get_screen('addItem').ids.textInputAddItemMake.focus = True                       # set focus to 
+        self.root.get_screen('addItem').ids.textInputAddItemMake.focus = True                           # set focus to 
 
     def addItemToItemModel(self, dt):
-        self.root.get_screen('addItem').ids.textInputAddItemModel.focus = True                      # set focus to 
+        self.root.get_screen('addItem').ids.textInputAddItemModel.focus = True                          # set focus to 
 
     def addItemToSerialNo(self, dt):
-        self.root.get_screen('addItem').ids.textInputAddItemSerialNo.focus = True                   # set focus to 
+        self.root.get_screen('addItem').ids.textInputAddItemSerialNo.focus = True                       # set focus to 
     
-    def historyDatePicker(self):
+    def historyDatePicker(self):                                                                        # Instigate history page date picker
         date_dialog = MDDatePicker(mode="range")
         date_dialog.bind(on_save=self.on_save, on_cancel=self.on_cancel)
         date_dialog.open()
 
-    def on_save(self, instance, value, date_range):
+    def on_save(self, instance, value, date_range):                                                     # History date changed and save clicked
         global dateRangeFrom
         global dateRangeTo                 
 
         dateRangeFrom = time.mktime(date_range[0].timetuple())
-        dateRangeTo = time.mktime((date_range[len(date_range)-1] + timedelta(days=1)).timetuple() )     # Add a day to include selected end of date range
+        dateRangeTo = time.mktime((date_range[len(date_range)-1] + timedelta(days=1)).timetuple() )     # Add a day to include selected end of date range to include the selected "to" date otherwise it only goes "up to" the selected date
 
         Clock.schedule_once(self.refreshHistory, 0)
         self.root.get_screen('history').ids.textInputHistoryItemID.focus = True
 
-    def on_cancel(self, instance, value):
+    def on_cancel(self, instance, value):                                                               # Cancel history date picker
         '''Events called when the "CANCEL" dialog box button is clicked.'''
     
-    def addUserSave(self):
+    def addUserSave(self):                                                                              # Add user to database
         addUserID = self.root.get_screen('addUser').ids.textInputAddUserID.text
         addUserFirstName = self.root.get_screen('addUser').ids.textInputAddUserFirstName.text
         addUserLastName = self.root.get_screen('addUser').ids.textInputAddUserLastName.text
@@ -2227,14 +2208,14 @@ class MainApp(MDApp):
         self.doMessage("User added")
         Clock.schedule_once(self.clearAddItem, 0)
     
-    def addItemSave(self):
+    def addItemSave(self):                                                                              # Add item to database
         addItemID = self.root.get_screen('addItem').ids.textInputAddItemID.text
         addItemName = self.root.get_screen('addItem').ids.textInputAddItemName.text
         addItemMake = self.root.get_screen('addItem').ids.textInputAddItemMake.text
         addItemModel = self.root.get_screen('addItem').ids.textInputAddItemModel.text
         addItemSerial = self.root.get_screen('addItem').ids.textInputAddItemSerialNo.text
 
-        itemDB.insert({'itemID': addItemID,                                                         # Insert returned item to itemDB
+        itemDB.insert({'itemID': addItemID,                                                             # Insert returned item to itemDB
                         'itemName': addItemName, 
                         'itemMake': addItemMake, 
                         'itemModel': addItemModel, 
@@ -2243,19 +2224,19 @@ class MainApp(MDApp):
         self.doMessage("Item added")
         Clock.schedule_once(self.clearAddItemSome, 0)
         
-    def clearAddUser(self, dt):
+    def clearAddUser(self, dt):                                                                         # Clears all text boxes in "Add User" page
         self.root.get_screen('addUser').ids.textInputAddUserID.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserFirstName.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserLastName.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserEmail.text = ""
         self.root.get_screen('addUser').ids.textInputAddUserID.focus = True
         
-    def clearAddItemSome(self, dt):
+    def clearAddItemSome(self, dt):                                                                     # Clears only itemID and serial number from "Add Item" page for inputing many similar items
         self.root.get_screen('addItem').ids.textInputAddItemID.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemSerialNo.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
 
-    def clearAddItem(self, dt):
+    def clearAddItem(self, dt):                                                                         # Clears all text boxes in "Add Item" page
         self.root.get_screen('addItem').ids.textInputAddItemID.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemName.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemMake.text = ""
@@ -2263,11 +2244,11 @@ class MainApp(MDApp):
         self.root.get_screen('addItem').ids.textInputAddItemSerialNo.text = ""
         self.root.get_screen('addItem').ids.textInputAddItemID.focus = True
 
-    def clearItemReturn(self, dt):
-        self.root.get_screen('returns').ids.textInputItem.text = ""                                 # clear input item box
-        self.root.get_screen('returns').ids.textInputItem.focus = True                              # set focus to input item box
+    def clearItemReturn(self, dt):                                                                      # Clear input item box from "Return" page
+        self.root.get_screen('returns').ids.textInputItem.text = ""
+        self.root.get_screen('returns').ids.textInputItem.focus = True                                  # Set focus to input item box
 
-    def resetTextErrorAll(self, dt):                                                                # clear ALL error boxes
+    def resetTextErrorAll(self, dt):                                                                    # Clear ALL error boxes from all pages
         self.root.get_screen('returns').ids.textErrorReturn.text = ""
         self.root.get_screen('main').ids.textErrorMain.text = ""
         self.root.get_screen('addUser').ids.textErrorAddUser.text = ""
