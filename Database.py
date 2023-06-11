@@ -1,7 +1,6 @@
 #macOS
 # pip3 install https://github.com/kivy/kivy/archive/master.zip
 # pip3 install https://github.com/kivymd/KivyMD/archive/master.zip
-# pip3 install pygame
 # pip3 install tinydb
 # pip3 install FPDF
 # pip3 install pyinstaller
@@ -12,7 +11,6 @@
 #Windows
 # python -m pip install https://github.com/kivy/kivy/archive/master.zip
 # python -m pip install https://github.com/kivymd/KivyMD/archive/master.zip
-# python -m pip install pygame
 # python -m pip install tinydb
 # python -m pip install FPDF
 # python -m pip install pyinstaller
@@ -42,10 +40,10 @@ import subprocess
 import time
 import os
 
+#Config.set('graphics', 'width', '1600')
+#Config.set('graphics', 'height', '900')
 Config.set('graphics', 'fullscreen', '0')
-Config.set('graphics', 'width', '1600')
 Config.set('graphics', 'window_state', 'windowed')
-Config.set('graphics', 'height', '900')
 Config.set('kivy', 'exit_on_escape', '0')
 Config.set('kivy', 'window_icon', 'dbIcon.png')
 Config.write()
@@ -84,6 +82,7 @@ checkboxState = False
 showLongTerm = False
 historyItemID = ""
 historyUserEmail = ""
+jsonString = str('{"_default": {}}')
 
 if platform == "win32" or platform == "Windows" or platform == "win":                                   # Tests if using Windows as different OS has different Printer code
     isWindows = True
@@ -1169,6 +1168,7 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Amber"
         self.uiDict = {}
         Window.bind(on_key_down = self.keyDown)
+        Window.size = (1600, 900)
         Clock.schedule_once(self.add_datatable, 0)                                                      # Clock.schedule_one runs the function after "0" seconds (ie next program cycle)
         Clock.schedule_once(self.resetTextInputItemMain, 0)                                             # Sets the "focused" text box
         Clock.schedule_once(self.cursorToUserID, 0)
@@ -1328,6 +1328,7 @@ class MainApp(MDApp):
 
             elif self.root.get_screen('main').ids.textInputUserEmail.focus == True:
                 userEmail = (self.root.get_screen('main').ids.textInputUserEmail.text)
+                
                 foundEmails = userDB.search(DBquery.email.search(userEmail, 3))
 
                 if len(foundEmails) == 1:
@@ -1587,7 +1588,7 @@ class MainApp(MDApp):
 
             else:
                 Clock.schedule_once(self.clearInputsESC, 0)
-            
+        
     def clearInputs(self, dt):
         global showNamesList
         global showEmailList
