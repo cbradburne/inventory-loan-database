@@ -27,8 +27,12 @@ from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
 from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.textfield import MDTextField
 from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.dropdownitem import MDDropDownItem
 from datetime import datetime
 from datetime import timedelta
 from tinydb import TinyDB
@@ -63,15 +67,8 @@ class SixthWindow(Screen):
 class WindowManager(ScreenManager):
     pass
 
-itemID = ""
-userID = ""
-outID = ""
-returnID = ""
-
 DBquery = Query()
 
-pdf_filename = ""
-runThisTime = True
 isWindows = True
 dateRangeFrom = 0.0
 dateRangeTo = 0.0
@@ -82,7 +79,6 @@ checkboxState = False
 showLongTerm = False
 historyItemID = ""
 historyUserEmail = ""
-jsonString = str('{"_default": {}}')
 
 if platform == "win32" or platform == "Windows" or platform == "win":                                   # Tests if using Windows as different OS has different Printer code
     isWindows = True
@@ -1208,8 +1204,6 @@ class MainApp(MDApp):
         Clock.schedule_once(self.cursorToUserID, 0)
 
     def on_check_press(self, instance_table, current_row):                                              # Mouse cliked a Check Mark in the DataTable
-        global runThisTime                                                                              # Check marks don't automatically get removed after the row is removed, when check marks are removed, it runs this code again, therefore needs to be bypassed when that happens.
-        
         listLength = len(self.data_tables.row_data)                                                     # Store number of dataTable rows
         listLengthOG = len(self.data_tables.row_data)
 
@@ -1253,7 +1247,6 @@ class MainApp(MDApp):
             self.goToScreenBookedOut()
 
     def keyDown(self, instance, keyboard, keycode, text, modifiers):                                    # Activates everytime a key pressed
-        global userID
         global checkboxState
         global historyItemID
         global historyUserEmail
@@ -1838,54 +1831,69 @@ class MainApp(MDApp):
         Clock.schedule_once(self.cursorToUserEmailReturn, 0)
 
     def processOutgoing(self):
-        global userID
+        userID = self.root.get_screen('main').ids.textInputUserID.text
 
-        currentDate = datetime.timestamp(datetime.now())
-        listLength = len(self.data_tables.row_data)
+        if len(userID) > 5:
+            userID = userID.rstrip(userID[-1])
+            foundID = userDB.search(DBquery.userID.search(userID))
 
-        if listLength == 0:
-            self.doMessage("List empty")
+            userID = (foundID[0]['userID'])
 
-        elif self.root.get_screen('main').ids.textInputUserID.text == "":
-            self.doMessage("No User selected")
+        getUser = (userDB.search(DBquery.userID == userID))                                 # search for user number in item database
+        
+        if not getUser:                                                                     # If user not found...                     # Remove text in main page message box after 2 seconds
+            self.doMessage("No user found")
+            Clock.schedule_once(self.resetTextInputItemMain, 0)
+            Clock.schedule_once(self.cursorToUserID, 0)
 
         else:
-            i=0
-            while i < listLength:
-                lineData = self.data_tables.row_data[i]
-                itemID = lineData[0]
-                longTerm = lineData[2]
 
-                outCheck = (outDB.search(DBquery.itemID == itemID))                                     # Check if item already booked out
+            currentDate = datetime.timestamp(datetime.now())
+            listLength = len(self.data_tables.row_data)
 
-                if not outCheck:                                                                        # If not booked out
-                    outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
+            if listLength == 0:
+                self.doMessage("List empty")
 
-                else:                                                                                   # If booked out already
-                    tempRead = (outDB.search(DBquery.itemID == itemID))                                 # Find item in outDB
-                    tempUserID = (tempRead[0]['userID'])                                                # Read and store who it was booked out to
-                    tempStartDate = (tempRead[0]['dateID'])                                             # Read and store date booked out
+            elif self.root.get_screen('main').ids.textInputUserID.text == "":
+                self.doMessage("No User selected")
 
-                    getUser = (userDB.search(DBquery.userID == tempUserID))
-                    tempUserFirst = (getUser[0]['firstName'])
-                    tempUserLast = (getUser[0]['lastName'])
-                    tempUserEmail = (getUser[0]['email'])
+            else:
+                i=0
+                while i < listLength:
+                    lineData = self.data_tables.row_data[i]
+                    itemID = lineData[0]
+                    longTerm = lineData[2]
 
-                    outDB.remove(where('itemID') == itemID)                                             # Remove item from outDB
+                    outCheck = (outDB.search(DBquery.itemID == itemID))                                     # Check if item already booked out
 
-                    historyDB.insert({'itemID': itemID, 
-                                    'userID': tempUserID, 
-                                    'userFirst': tempUserFirst,                                         # Store name & email in case they're later removed from userDB
-                                    'userLast': tempUserLast, 
-                                    'email': tempUserEmail,
-                                    'startDate': tempStartDate, 
-                                    'returnDate': currentDate})                                         # Insert old booking in to historyDB
-                    
-                    outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
+                    if not outCheck:                                                                        # If not booked out
+                        outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
 
-                i +=1
+                    else:                                                                                   # If booked out already
+                        tempRead = (outDB.search(DBquery.itemID == itemID))                                 # Find item in outDB
+                        tempUserID = (tempRead[0]['userID'])                                                # Read and store who it was booked out to
+                        tempStartDate = (tempRead[0]['dateID'])                                             # Read and store date booked out
 
-            self.remove_all_rows()
+                        getUser = (userDB.search(DBquery.userID == tempUserID))
+                        tempUserFirst = (getUser[0]['firstName'])
+                        tempUserLast = (getUser[0]['lastName'])
+                        tempUserEmail = (getUser[0]['email'])
+
+                        outDB.remove(where('itemID') == itemID)                                             # Remove item from outDB
+
+                        historyDB.insert({'itemID': itemID, 
+                                        'userID': tempUserID, 
+                                        'userFirst': tempUserFirst,                                         # Store name & email in case they're later removed from userDB
+                                        'userLast': tempUserLast, 
+                                        'email': tempUserEmail,
+                                        'startDate': tempStartDate, 
+                                        'returnDate': currentDate})                                         # Insert old booking in to historyDB
+                        
+                        outDB.insert({'itemID': itemID, 'userID': userID, 'longTerm': longTerm, 'dateID': currentDate})
+
+                    i +=1
+
+                self.remove_all_rows()
 
     def exportBooked(self):
         global isWindows
