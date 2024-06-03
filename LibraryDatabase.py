@@ -244,6 +244,8 @@ class databaseApp(QMainWindow):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableWidgetBO.sizePolicy().hasHeightForWidth())
+
+
         self.tableWidgetBO.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -1877,6 +1879,8 @@ QTableCornerButton::section {
                 self.lineEditHistStudentID.setText(userID)
                 self.lineEditHistStudentName.setText(userName)
                 self.lineEditHistStudentEmail.setText(userEmail)
+            
+            self.lineEditBOItemID.setFocus()
 
         elif len(foundEmails) > 1:
             if nameIndex == -1:
@@ -2064,6 +2068,12 @@ QTableCornerButton::section {
         self.lineEditBOStudentName.setText("")
         self.lineEditBOStudentEmail.setText("")
         self.lineEditBOStudentID.setFocus()
+
+        if self.listWidgetBOName.isVisible():
+            self.listWidgetBOName.clear()
+            self.listWidgetBOName.hide()
+            self.lineEditBOStudentName.setText("")
+            self.lineEditBOStudentID.setFocus()
 
     def processOutgoing(self):
         userData = self.getUserFromID(self.lineEditBOStudentID.text())
