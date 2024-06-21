@@ -3014,6 +3014,8 @@ QTableCornerButton::section {
                         userIDSearch = (userDB.search(DBquery.userID == row[0]))
 
                         if userIDSearch == []:
+                            row[1] = row[1].replace(' ', '-')
+                            row[2] = row[2].replace(' ', '-')
                             userDB.insert({'userID': row[0],
                                             'firstName': row[1], 
                                             'lastName': row[2], 
