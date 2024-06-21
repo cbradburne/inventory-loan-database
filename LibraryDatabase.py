@@ -1,33 +1,26 @@
 
 # Windows
-# python -m pip install pyqt5
+# python -m pip install PySide6
 # python -m pip install tinydb
 # python -m pip install fpdf
 # python -m pip install pyinstaller
 # python -m PyInstaller --onefile --windowed --icon="dbIcon.ico" LibraryDatabase.py
 
 # macOS
-# python3 -m pip install pyqt5
+# python3 -m pip install PySide6
 # python3 -m pip install tinydb
 # python3 -m pip install fpdf
 # python3 -m pip install pyinstaller
 
-
-#from PyQt5 import QtCore, QtGui, QtWidgets
-#from PyQt5.QtWidgets import QMainWindow
-
-from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtWidgets import QWidget, QMainWindow, QFileDialog #, QDesktopWidget
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtWidgets import QWidget, QMainWindow, QFileDialog, QMessageBox
 
-import time
-from datetime import datetime
-from datetime import timedelta
-from tinydb import TinyDB
-from tinydb import Query
-from tinydb import where
+from datetime import datetime, timedelta
+from tinydb import TinyDB, Query, where
 from fpdf import FPDF
-import sys, time, re, os, subprocess
+import sys, time, re, os, subprocess, csv
+
 
 showLongTerm = False
 watchCellChange = True
@@ -96,13 +89,9 @@ if sys.platform == "win32" or sys.platform == "Windows" or sys.platform == "win"
     f = open(itemsPath, 'a')  # open file, create if doesn't exist
     f.close()
 
-    #itemDB = TinyDB('C:\\Users\\Public\\Documents\\Database\\itemdb.json')
-    #userDB = TinyDB('C:\\Users\\Public\\Documents\\Database\\userdb.json')
-    #outDB = TinyDB('C:\\Users\\Public\\Documents\\Database\\outdb.json')
-    #historyDB = TinyDB('C:\\Users\\Public\\Documents\\Database\\historydb.json')
-    #bookedOutPath = 'C:\\Users\\Public\\Documents\\Database\\BookedOut.pdf'
-    #historyPath = 'C:\\Users\\Public\\Documents\\Database\\History.pdf'
-    #itemsPath = 'C:\\Users\\Public\\Documents\\Database\\Items.pdf'
+    usersPath = 'C:\\Users\\Public\\Documents\\Database\\Users.pdf'
+    f = open(itemsPath, 'a')  # open file, create if doesn't exist
+    f.close()
     #print("IS Windows")
 else:
     isWindows = False
@@ -152,6 +141,10 @@ else:
     itemsPath = '/Users/Shared/Database/Items.pdf'
     f = open(itemsPath, 'a')  # open file, create if doesn't exist
     f.close()
+
+    usersPath = '/Users/Shared/Database/Users.pdf'
+    f = open(itemsPath, 'a')  # open file, create if doesn't exist
+    f.close()
     #print("is NOT Windows")
 
 class databaseApp(QMainWindow):
@@ -178,25 +171,23 @@ class databaseApp(QMainWindow):
         agX = ag.width()
         agY = ag.height()
 
-        #print(agX)
-        #print(agY)
+        if agX > 1800:
+            agX = agX - 200
+            agY = agY - 100
 
         sgX = agX / 200
         sgY = agY / 100
 
         self.setObjectName("MainWindow")
-        #self.resize(1806, 1035)
-        self.resize(agX, agY)
+        self.resize(agX, agY)   #self.resize(1806, 1035)
         self.setStyleSheet("background-color: #080e13;")
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setObjectName("centralwidget")
         self.groupBoxMenu = QtWidgets.QGroupBox(self.centralwidget)
-        #self.groupBoxMenu.setGeometry(QtCore.QRect(20, 0, 1761, 81))
         self.groupBoxMenu.setGeometry(QtCore.QRect(sgX*2, sgY, sgX*196, sgY*8))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
-
 
 
         # Top Menu
@@ -205,7 +196,6 @@ class databaseApp(QMainWindow):
         self.groupBoxMenu.setTitle("")
         self.groupBoxMenu.setObjectName("groupBoxMenu")
         self.pushButtonBookOut = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowBookOut())
-        #self.pushButtonBookOut.setGeometry(QtCore.QRect(10, 10, 211, 61))
         self.pushButtonBookOut.setGeometry(QtCore.QRect(sgX, sgY, sgX*21, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -214,7 +204,6 @@ class databaseApp(QMainWindow):
         self.pushButtonBookOut.setStyleSheet("border: 4px solid #aa3333; background-color: #405C80; border-radius: 10px; color: #ffffff;")
         self.pushButtonBookOut.setObjectName("pushButtonBookOut")
         self.pushButtonReturn = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowReturn())
-        #self.pushButtonReturn.setGeometry(QtCore.QRect(240, 10, 211, 61))
         self.pushButtonReturn.setGeometry(QtCore.QRect(sgX*24, sgY, sgX*21, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -231,7 +220,6 @@ class databaseApp(QMainWindow):
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonBookedOut.setObjectName("pushButtonBookedOut")
         self.pushButtonHistory = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowHistory())
-        #self.pushButtonHistory.setGeometry(QtCore.QRect(890, 10, 211, 61))
         self.pushButtonHistory.setGeometry(QtCore.QRect(sgX*99, sgY, sgX*21, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -239,8 +227,7 @@ class databaseApp(QMainWindow):
         self.pushButtonHistory.setFont(font)
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setObjectName("pushButtonHistory")
-        self.pushButtonItems = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowItems())
-        #self.pushButtonItems.setGeometry(QtCore.QRect(1310, 10, 211, 61))
+        self.pushButtonItems = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowAllItems())
         self.pushButtonItems.setGeometry(QtCore.QRect(sgX*151, sgY, sgX*21, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -249,7 +236,6 @@ class databaseApp(QMainWindow):
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setObjectName("pushButtonItems")
         self.pushButtonUsers = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowAllUsers())
-        #self.pushButtonUsers.setGeometry(QtCore.QRect(1540, 10, 211, 61))
         self.pushButtonUsers.setGeometry(QtCore.QRect(sgX*174, sgY, sgX*21, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -280,7 +266,6 @@ class databaseApp(QMainWindow):
         font.setPointSize(int(sgX*2.5))
         self.tableWidgetBO.setFont(font)
         self.tableWidgetBO.setAutoFillBackground(False)
-        #self.tableWidgetBO.setStyleSheet("alternate-background-color: #282e33; background-color: #181e23; color: white; QHeaderView::section { color: white; background-color: #747678;    gridline-color: #747678; };")
         
         styleSheet = """
 QTableView {
@@ -333,7 +318,7 @@ QTableCornerButton::section {
         item.setFont(font)
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidgetBO.setHorizontalHeaderItem(1, item)
-        self.tableWidgetBO.setColumnWidth(1, sgX*18)    # itemID
+        self.tableWidgetBO.setColumnWidth(1, sgX*14)    # itemID
         item = QtWidgets.QTableWidgetItem()
         item.setBackground(QtGui.QColor("white"))
         font = QtGui.QFont()
@@ -342,7 +327,7 @@ QTableCornerButton::section {
         item.setFont(font)
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidgetBO.setHorizontalHeaderItem(2, item)
-        self.tableWidgetBO.setColumnWidth(2, sgX*64)    # itemName
+        self.tableWidgetBO.setColumnWidth(2, sgX*68)    # itemName
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -350,7 +335,7 @@ QTableCornerButton::section {
         item.setFont(font)
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidgetBO.setHorizontalHeaderItem(3, item)
-        self.tableWidgetBO.setColumnWidth(3, sgX*22)    # itemMake
+        self.tableWidgetBO.setColumnWidth(3, sgX*24)    # itemMake
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -370,14 +355,6 @@ QTableCornerButton::section {
         self.tableWidgetBO.verticalHeader().setVisible(True)
         self.tableWidgetBO.verticalHeader().setHighlightSections(True)
 
-        self.pushButtonBOClearLast = QtWidgets.QPushButton(self.groupBoxBO, clicked = lambda: self.clearPrev())
-        self.pushButtonBOClearLast.setGeometry(QtCore.QRect(sgX*2, sgY*23, sgX*16, sgY*5))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*3))
-        self.pushButtonBOClearLast.setFont(font)
-        self.pushButtonBOClearLast.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
-        self.pushButtonBOClearLast.setObjectName("pushButtonBOClearLast")
         self.pushButtonBOClear = QtWidgets.QPushButton(self.groupBoxBO, clicked = lambda: self.clearAll())
         self.pushButtonBOClear.setGeometry(QtCore.QRect(sgX*2, sgY*30, sgX*16, sgY*5))
         font = QtGui.QFont()
@@ -386,6 +363,14 @@ QTableCornerButton::section {
         self.pushButtonBOClear.setFont(font)
         self.pushButtonBOClear.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonBOClear.setObjectName("pushButtonBOClear")
+        self.pushButtonBOClearLast = QtWidgets.QPushButton(self.groupBoxBO, clicked = lambda: self.clearPrev())
+        self.pushButtonBOClearLast.setGeometry(QtCore.QRect(sgX*2, sgY*23, sgX*16, sgY*5))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.pushButtonBOClearLast.setFont(font)
+        self.pushButtonBOClearLast.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonBOClearLast.setObjectName("pushButtonBOClearLast")
         self.pushButtonBOCancel = QtWidgets.QPushButton(self.groupBoxBO, clicked = lambda: self.cancelBO())
         self.pushButtonBOCancel.setGeometry(QtCore.QRect(sgX*2, sgY*70, sgX*16, sgY*5))
         font = QtGui.QFont()
@@ -447,8 +432,8 @@ QTableCornerButton::section {
         self.lineEditBOUserName.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditBOUserName.setObjectName("lineEditBOUserName")
         self.listWidgetBOUserName = QtWidgets.QListWidget(self.groupBoxBO)
-        self.listWidgetBOUserName.itemClicked.connect(self.listItemBOClicked)                #itemDoubleClicked.connect
-        self.listWidgetBOUserName.setGeometry(QtCore.QRect(sgX*67, sgY*7, sgX*42, sgY*35))
+        self.listWidgetBOUserName.itemClicked.connect(self.listItemBOClicked)
+        self.listWidgetBOUserName.setGeometry(QtCore.QRect(sgX*77, sgY*7, sgX*42, sgY*35))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
@@ -481,8 +466,8 @@ QTableCornerButton::section {
         self.lineEditBOUserEmail.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditBOUserEmail.setObjectName("lineEditBOUserEmail")
         self.listWidgetBOUserEmail = QtWidgets.QListWidget(self.groupBoxBO)
-        self.listWidgetBOUserEmail.itemClicked.connect(self.listItemEmailBOClicked)         #itemDoubleClicked.connect
-        self.listWidgetBOUserEmail.setGeometry(QtCore.QRect(sgX*131, sgY*7, sgX*42, sgY*35))
+        self.listWidgetBOUserEmail.itemClicked.connect(self.listItemEmailBOClicked)
+        self.listWidgetBOUserEmail.setGeometry(QtCore.QRect(sgX*152, sgY*7, sgX*42, sgY*35))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
@@ -569,35 +554,35 @@ QTableCornerButton::section {
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetRe.setHorizontalHeaderItem(0, item)
-        self.tableWidgetRe.setColumnWidth(0, sgX*18)
+        self.tableWidgetRe.setColumnWidth(0, sgX*18)    # itemID
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetRe.setHorizontalHeaderItem(1, item)
-        self.tableWidgetRe.setColumnWidth(1, sgX*60)
+        self.tableWidgetRe.setColumnWidth(1, sgX*60)    # itemName
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetRe.setHorizontalHeaderItem(2, item)
-        self.tableWidgetRe.setColumnWidth(2, sgX*22)
+        self.tableWidgetRe.setColumnWidth(2, sgX*22)    # userID
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetRe.setHorizontalHeaderItem(3, item)
-        self.tableWidgetRe.setColumnWidth(3, sgX*34)
+        self.tableWidgetRe.setColumnWidth(3, sgX*36)    # userName
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetRe.setHorizontalHeaderItem(4, item)
-        self.tableWidgetRe.setColumnWidth(4, sgX*38)
+        self.tableWidgetRe.setColumnWidth(4, sgX*38)    # userEmail
         self.tableWidgetRe.verticalHeader().setVisible(True)
         self.tableWidgetRe.verticalHeader().setHighlightSections(True)
         self.lineEditReItemID = QtWidgets.QLineEdit(self.groupBoxRe)
@@ -676,7 +661,6 @@ QTableCornerButton::section {
         font.setPointSize(int(sgX*2.5))
         self.tableWidgetBkdO.setFont(font)
         self.tableWidgetBkdO.setAutoFillBackground(False)
-        #self.tableWidgetBkdO.setStyleSheet("alternate-background-color: #282e33;background-color: #181e23; color: white;")
         self.tableWidgetBkdO.setStyleSheet(styleSheet)
         self.tableWidgetBkdO.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.tableWidgetBkdO.setLineWidth(1)
@@ -699,14 +683,14 @@ QTableCornerButton::section {
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetBkdO.setHorizontalHeaderItem(1, item)     # itemID
-        self.tableWidgetBkdO.setColumnWidth(1, sgX*18)
+        self.tableWidgetBkdO.setColumnWidth(1, sgX*14)
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetBkdO.setHorizontalHeaderItem(2, item)     # itemName
-        self.tableWidgetBkdO.setColumnWidth(2, sgX*64)
+        self.tableWidgetBkdO.setColumnWidth(2, sgX*60)
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -720,14 +704,14 @@ QTableCornerButton::section {
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetBkdO.setHorizontalHeaderItem(4, item)     # userEmail
-        self.tableWidgetBkdO.setColumnWidth(4, sgX*26)
+        self.tableWidgetBkdO.setColumnWidth(4, sgX*30)
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetBkdO.setHorizontalHeaderItem(5, item)     # dateOut
-        self.tableWidgetBkdO.setColumnWidth(5, sgX*26)
+        self.tableWidgetBkdO.setColumnWidth(5, sgX*32)
         self.tableWidgetBkdO.verticalHeader().setVisible(True)
         self.tableWidgetBkdO.verticalHeader().setHighlightSections(True)
         self.pushButtonBkdOExport = QtWidgets.QPushButton(self.groupBoxBkdO, clicked = lambda: self.exportBooked())
@@ -753,8 +737,8 @@ QTableCornerButton::section {
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableWidgetHist.sizePolicy().hasHeightForWidth())
         self.listWidgetHistUserName = QtWidgets.QListWidget(self.groupBoxHist)
-        self.listWidgetHistUserName.itemClicked.connect(self.listItemHistClicked)         #itemDoubleClicked.connect
-        self.listWidgetHistUserName.setGeometry(QtCore.QRect(sgX*67, sgY*7, sgX*42, sgY*35))
+        self.listWidgetHistUserName.itemClicked.connect(self.listItemHistClicked)
+        self.listWidgetHistUserName.setGeometry(QtCore.QRect(sgX*77, sgY*7, sgX*42, sgY*35))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
@@ -785,14 +769,14 @@ QTableCornerButton::section {
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetHist.setHorizontalHeaderItem(0, item)
-        self.tableWidgetHist.setColumnWidth(0, sgX*18)  # itemID
+        self.tableWidgetHist.setColumnWidth(0, sgX*14)  # itemID
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetHist.setHorizontalHeaderItem(1, item)
-        self.tableWidgetHist.setColumnWidth(1, sgX*70) # itemName
+        self.tableWidgetHist.setColumnWidth(1, sgX*69) # itemName
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -805,7 +789,7 @@ QTableCornerButton::section {
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
-        self.tableWidgetHist.setHorizontalHeaderItem(3, item)   # Email
+        self.tableWidgetHist.setHorizontalHeaderItem(3, item)
         self.tableWidgetHist.setColumnWidth(3, sgX*26) # userEmail
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
@@ -813,14 +797,14 @@ QTableCornerButton::section {
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetHist.setHorizontalHeaderItem(4, item)
-        self.tableWidgetHist.setColumnWidth(4, sgX*16) # dateOUT
+        self.tableWidgetHist.setColumnWidth(4, sgX*18) # dateOUT
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetHist.setHorizontalHeaderItem(5, item)
-        self.tableWidgetHist.setColumnWidth(5, sgX*16) # dateIN
+        self.tableWidgetHist.setColumnWidth(5, sgX*18) # dateIN
         self.tableWidgetHist.verticalHeader().setVisible(True)
         self.tableWidgetHist.verticalHeader().setHighlightSections(True)
         self.pushButtonHistClear = QtWidgets.QPushButton(self.groupBoxHist, clicked = lambda: self.clearHist())
@@ -883,7 +867,7 @@ QTableCornerButton::section {
         self.labelHistUserName.setObjectName("labelHistUserName")
         self.lineEditHistUserEmail = QtWidgets.QLineEdit(self.groupBoxHist)
         self.lineEditHistUserEmail.returnPressed.connect(lambda: self.getUserFromEmail(-1))
-        self.lineEditHistUserEmail.setGeometry(QtCore.QRect(sgX*151, sgY*3, sgX*44, sgY*4)) #sgX*152, 0, sgX*16, sgY*3))
+        self.lineEditHistUserEmail.setGeometry(QtCore.QRect(sgX*151, sgY*3, sgX*44, sgY*4))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
@@ -903,7 +887,7 @@ QTableCornerButton::section {
         self.labelHistUserEmail.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.labelHistUserEmail.setObjectName("labelHistUserEmail")
         self.listWidgetHistEmail = QtWidgets.QListWidget(self.groupBoxHist)
-        self.listWidgetHistEmail.itemClicked.connect(self.listItemEmailHistClicked)         #itemDoubleClicked.connect
+        self.listWidgetHistEmail.itemClicked.connect(self.listItemEmailHistClicked)
         self.listWidgetHistEmail.setGeometry(QtCore.QRect(sgX*131, sgY*7, sgX*42, sgY*35))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -999,67 +983,70 @@ QTableCornerButton::section {
 
 
         # Items
-        self.groupBoxItemsOuter = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBoxItemsOuter.setGeometry(QtCore.QRect(sgX*2, sgY*10, sgX*196, sgY*90))
-        self.groupBoxItemsOuter.setStyleSheet("background-color: #181e23; border: 0px solid #000;")
-        self.groupBoxItemsOuter.setTitle("")
-        self.groupBoxItemsOuter.setObjectName("groupBoxItemsOuter")
+        self.groupBoxAllItemsOuter = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBoxAllItemsOuter.setGeometry(QtCore.QRect(sgX*2, sgY*10, sgX*196, sgY*90))
+        self.groupBoxAllItemsOuter.setStyleSheet("background-color: #181e23; border: 0px solid #000;")
+        self.groupBoxAllItemsOuter.setTitle("")
+        self.groupBoxAllItemsOuter.setObjectName("groupBoxAllItemsOuter")
 
         # All Items
-        self.groupBoxAllItems = QtWidgets.QGroupBox(self.groupBoxItemsOuter)
+        self.groupBoxAllItems = QtWidgets.QGroupBox(self.groupBoxAllItemsOuter)
         self.groupBoxAllItems.setGeometry(QtCore.QRect(0, 0, sgX*196, sgY*90))
         self.groupBoxAllItems.setStyleSheet("background-color: #1c2428")
         self.groupBoxAllItems.setTitle("")
         self.groupBoxAllItems.setObjectName("groupBoxAllItems")
 
-        self.pushButtonAllItemsMenu1 = QtWidgets.QPushButton(self.groupBoxAllItems, clicked = lambda: self.openWindowItems())
-        self.pushButtonAllItemsMenu1.setGeometry(QtCore.QRect(sgX*151, sgY, sgX*21, sgY*6))
+        self.pushButtonAllItemsAllItems = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowAllItems())
+        self.pushButtonAllItemsAllItems.setGeometry(QtCore.QRect(sgX*151, sgY, sgX*10, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
-        self.pushButtonAllItemsMenu1.setFont(font)
-        self.pushButtonAllItemsMenu1.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
-        self.pushButtonAllItemsMenu1.setObjectName("pushButtonAllItemsMenu1")
-        self.pushButtonAddItemMenu1 = QtWidgets.QPushButton(self.groupBoxAllItems, clicked = lambda: self.openWindowAddItem())
-        self.pushButtonAddItemMenu1.setGeometry(QtCore.QRect(sgX*174, sgY, sgX*21, sgY*6))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*3))
-        self.pushButtonAddItemMenu1.setFont(font)
-        self.pushButtonAddItemMenu1.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px;color: #ffffff;")
-        self.pushButtonAddItemMenu1.setObjectName("pushButtonAddItemMenu1")
+        self.pushButtonAllItemsAllItems.setFont(font)
+        self.pushButtonAllItemsAllItems.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
+        self.pushButtonAllItemsAllItems.setObjectName("pushButtonAllItemsAllItems")
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowAddItem())
+        self.pushButtonAllItemsAddItem.setGeometry(QtCore.QRect(sgX*162, sgY, sgX*10, sgY*6))
 
-        self.labelAIItemiD = QtWidgets.QLabel(self.groupBoxAllItems)
-        self.labelAIItemiD.setGeometry(QtCore.QRect(sgX*22, 0, sgX*16, sgY*3))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*2.5))
-        self.labelAIItemiD.setFont(font)
-        self.labelAIItemiD.setAutoFillBackground(False)
-        self.labelAIItemiD.setStyleSheet("color: white;background-color: rgba(255, 255, 255, 0);")
-        self.labelAIItemiD.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.labelAIItemiD.setObjectName("labelAIItemiD")
-        self.lineEditAIItemID = QtWidgets.QLineEdit(self.groupBoxAllItems)
-        self.lineEditAIItemID.returnPressed.connect(lambda: self.populateAllItems())
-        self.lineEditAIItemID.setGeometry(QtCore.QRect(sgX*21, sgY*3, sgX*28, sgY*4))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
-        self.lineEditAIItemID.setFont(font)
-        self.lineEditAIItemID.setStyleSheet("border: 4px solid grey; background-color: #111; border-radius: 10px;color: #ffffff;")
-        self.lineEditAIItemID.setText("")
-        self.lineEditAIItemID.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditAIItemID.setObjectName("lineEditAIItemID")
-        self.labelAIItemSearch = QtWidgets.QLabel(self.groupBoxAllItems)
-        self.labelAIItemSearch.setGeometry(QtCore.QRect(sgX*77, 0, sgX*16, sgY*3))
+        self.pushButtonAllItemsAddItem.setFont(font)
+        self.pushButtonAllItemsAddItem.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px;color: #ffffff;")
+        self.pushButtonAllItemsAddItem.setObjectName("pushButtonAllItemsAddItem")
+        self.pushButtonAllItemsAddItem.hide()
+
+        self.labelAllItemsItemID = QtWidgets.QLabel(self.groupBoxAllItems)
+        self.labelAllItemsItemID.setGeometry(QtCore.QRect(sgX*22, 0, sgX*16, sgY*3))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
-        self.labelAIItemSearch.setFont(font)
-        self.labelAIItemSearch.setAutoFillBackground(False)
-        self.labelAIItemSearch.setStyleSheet("color: white;background-color: rgba(255, 255, 255, 0);")
-        self.labelAIItemSearch.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.labelAIItemSearch.setObjectName("labelAIItemSearch")
+        self.labelAllItemsItemID.setFont(font)
+        self.labelAllItemsItemID.setAutoFillBackground(False)
+        self.labelAllItemsItemID.setStyleSheet("color: white;background-color: rgba(255, 255, 255, 0);")
+        self.labelAllItemsItemID.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.labelAllItemsItemID.setObjectName("labelAllItemsItemID")
+        self.lineEditAllItemsItemID = QtWidgets.QLineEdit(self.groupBoxAllItems)
+        self.lineEditAllItemsItemID.returnPressed.connect(lambda: self.populateAllItems())
+        self.lineEditAllItemsItemID.setGeometry(QtCore.QRect(sgX*21, sgY*3, sgX*28, sgY*4))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.lineEditAllItemsItemID.setFont(font)
+        self.lineEditAllItemsItemID.setStyleSheet("border: 4px solid grey; background-color: #111; border-radius: 10px;color: #ffffff;")
+        self.lineEditAllItemsItemID.setText("")
+        self.lineEditAllItemsItemID.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditAllItemsItemID.setObjectName("lineEditAllItemsItemID")
+        self.labelAllItemsItemSearch = QtWidgets.QLabel(self.groupBoxAllItems)
+        self.labelAllItemsItemSearch.setGeometry(QtCore.QRect(sgX*77, 0, sgX*16, sgY*3))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*2.5))
+        self.labelAllItemsItemSearch.setFont(font)
+        self.labelAllItemsItemSearch.setAutoFillBackground(False)
+        self.labelAllItemsItemSearch.setStyleSheet("color: white;background-color: rgba(255, 255, 255, 0);")
+        self.labelAllItemsItemSearch.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.labelAllItemsItemSearch.setObjectName("labelAllItemsItemSearch")
         self.lineEditAIItemSearch = QtWidgets.QLineEdit(self.groupBoxAllItems)
         self.lineEditAIItemSearch.returnPressed.connect(lambda: self.populateAllItems())
         self.lineEditAIItemSearch.setGeometry(QtCore.QRect(sgX*76, sgY*3, sgX*44, sgY*4))
@@ -1072,65 +1059,65 @@ QTableCornerButton::section {
         self.lineEditAIItemSearch.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditAIItemSearch.setObjectName("lineEditAIItemSearch")
 
-        self.tableWidgetAI = QtWidgets.QTableWidget(self.groupBoxAllItems)
-        self.tableWidgetAI.setGeometry(QtCore.QRect(sgX*20, sgY*9, sgX*174, sgY*77))
+        self.tableWidgetAllItems = QtWidgets.QTableWidget(self.groupBoxAllItems)
+        self.tableWidgetAllItems.setGeometry(QtCore.QRect(sgX*20, sgY*9, sgX*174, sgY*77))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidgetAI.sizePolicy().hasHeightForWidth())
-        self.tableWidgetAI.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.tableWidgetAllItems.sizePolicy().hasHeightForWidth())
+        self.tableWidgetAllItems.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
-        self.tableWidgetAI.setFont(font)
-        self.tableWidgetAI.setAutoFillBackground(False)
-        self.tableWidgetAI.setStyleSheet(styleSheet)
-        self.tableWidgetAI.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.tableWidgetAI.setLineWidth(1)
-        self.tableWidgetAI.setMidLineWidth(0)
-        self.tableWidgetAI.setAlternatingRowColors(True)
-        self.tableWidgetAI.setShowGrid(True)
-        self.tableWidgetAI.setRowCount(0)
-        self.tableWidgetAI.setObjectName("tableWidgetAI")
-        self.tableWidgetAI.setColumnCount(5)
+        self.tableWidgetAllItems.setFont(font)
+        self.tableWidgetAllItems.setAutoFillBackground(False)
+        self.tableWidgetAllItems.setStyleSheet(styleSheet)
+        self.tableWidgetAllItems.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.tableWidgetAllItems.setLineWidth(1)
+        self.tableWidgetAllItems.setMidLineWidth(0)
+        self.tableWidgetAllItems.setAlternatingRowColors(True)
+        self.tableWidgetAllItems.setShowGrid(True)
+        self.tableWidgetAllItems.setRowCount(0)
+        self.tableWidgetAllItems.setObjectName("tableWidgetAllItems")
+        self.tableWidgetAllItems.setColumnCount(5)
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
-        self.tableWidgetAI.setHorizontalHeaderItem(0, item)
-        self.tableWidgetAI.setColumnWidth(0, sgX*18)    # itemID
+        self.tableWidgetAllItems.setHorizontalHeaderItem(0, item)
+        self.tableWidgetAllItems.setColumnWidth(0, sgX*14)    # itemID
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        self.tableWidgetAI.setHorizontalHeaderItem(1, item)
-        self.tableWidgetAI.setColumnWidth(1, sgX*73)    # itemName
+        self.tableWidgetAllItems.setHorizontalHeaderItem(1, item)
+        self.tableWidgetAllItems.setColumnWidth(1, sgX*73)    # itemName
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
-        self.tableWidgetAI.setHorizontalHeaderItem(2, item)
-        self.tableWidgetAI.setColumnWidth(2, sgX*22)    # itemMake
+        self.tableWidgetAllItems.setHorizontalHeaderItem(2, item)
+        self.tableWidgetAllItems.setColumnWidth(2, sgX*28)    # itemMake
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
-        self.tableWidgetAI.setHorizontalHeaderItem(3, item)
-        self.tableWidgetAI.setColumnWidth(3, sgX*28)    # itemModel
+        self.tableWidgetAllItems.setHorizontalHeaderItem(3, item)
+        self.tableWidgetAllItems.setColumnWidth(3, sgX*28)    # itemModel
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
-        self.tableWidgetAI.setHorizontalHeaderItem(4, item)
-        self.tableWidgetAI.setColumnWidth(4, sgX*28)    # itemSerial
-        self.tableWidgetAI.verticalHeader().setVisible(True)
-        self.tableWidgetAI.verticalHeader().setHighlightSections(True)
+        self.tableWidgetAllItems.setHorizontalHeaderItem(4, item)
+        self.tableWidgetAllItems.setColumnWidth(4, sgX*28)    # itemSerial
+        self.tableWidgetAllItems.verticalHeader().setVisible(True)
+        self.tableWidgetAllItems.verticalHeader().setHighlightSections(True)
         
         self.pushButtonAIClear = QtWidgets.QPushButton(self.groupBoxAllItems)
         self.pushButtonAIClear = QtWidgets.QPushButton(self.groupBoxAllItems, clicked = lambda: self.clearAllItems())
@@ -1150,42 +1137,24 @@ QTableCornerButton::section {
         self.pushButtonAIExport.setFont(font)
         self.pushButtonAIExport.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px;color: #ffffff;")
         self.pushButtonAIExport.setObjectName("pushButtonAIExport")
-        self.lineEditAIMessage = QtWidgets.QLineEdit(self.groupBoxAllItems)
-        self.lineEditAIMessage.setGeometry(QtCore.QRect(0, sgY*3, sgX*20, sgY*4))
+        self.lineEditAllItemsMessage = QtWidgets.QLineEdit(self.groupBoxAllItems)
+        self.lineEditAllItemsMessage.setGeometry(QtCore.QRect(0, sgY*3, sgX*20, sgY*4))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
-        self.lineEditAIMessage.setFont(font)
-        self.lineEditAIMessage.setStyleSheet("color: #ffffff;")
-        self.lineEditAIMessage.setText("")
-        self.lineEditAIMessage.setFrame(False)
-        self.lineEditAIMessage.setAlignment(QtCore.Qt.AlignCenter)
-        self.lineEditAIMessage.setObjectName("lineEditAIMessage")
+        self.lineEditAllItemsMessage.setFont(font)
+        self.lineEditAllItemsMessage.setStyleSheet("color: #ffffff;")
+        self.lineEditAllItemsMessage.setText("")
+        self.lineEditAllItemsMessage.setFrame(False)
+        self.lineEditAllItemsMessage.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineEditAllItemsMessage.setObjectName("lineEditAllItemsMessage")
         
         # Add Item
-        self.groupBoxAddItem = QtWidgets.QGroupBox(self.groupBoxItemsOuter)
+        self.groupBoxAddItem = QtWidgets.QGroupBox(self.groupBoxAllItemsOuter)
         self.groupBoxAddItem.setGeometry(QtCore.QRect(0, 0, sgX*196, sgY*90))
         self.groupBoxAddItem.setStyleSheet("background-color: #1c2428")
         self.groupBoxAddItem.setTitle("")
         self.groupBoxAddItem.setObjectName("groupBoxAddItem")
-
-        self.pushButtonAllItemsMenu2 = QtWidgets.QPushButton(self.groupBoxAddItem, clicked = lambda: self.openWindowItems())
-        self.pushButtonAllItemsMenu2.setGeometry(QtCore.QRect(sgX*151, sgY, sgX*21, sgY*6))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*3))
-        self.pushButtonAllItemsMenu2.setFont(font)
-        self.pushButtonAllItemsMenu2.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px;color: #ffffff;")
-        self.pushButtonAllItemsMenu2.setObjectName("pushButtonAllItemsMenu2")
-
-        self.pushButtonAddItemMenu2 = QtWidgets.QPushButton(self.groupBoxAddItem, clicked = lambda: self.openWindowAddItem())
-        self.pushButtonAddItemMenu2.setGeometry(QtCore.QRect(sgX*174, sgY, sgX*21, sgY*6))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*3))
-        self.pushButtonAddItemMenu2.setFont(font)
-        self.pushButtonAddItemMenu2.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
-        self.pushButtonAddItemMenu2.setObjectName("pushButtonAddItemMenu2")
 
         self.lineEditAddItemID = QtWidgets.QLineEdit(self.groupBoxAddItem)
         self.lineEditAddItemID.returnPressed.connect(lambda: self.addItemIDCheck())
@@ -1338,22 +1307,24 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.setTitle("")
         self.groupBoxAllUsers.setObjectName("groupBoxAllUsers")
 
-        self.pushButtonAllUsersAllUsers = QtWidgets.QPushButton(self.groupBoxAllUsers, clicked = lambda: self.openWindowAllUsers())
-        self.pushButtonAllUsersAllUsers.setGeometry(QtCore.QRect(sgX*151, sgY, sgX*21, sgY*6))
+        self.pushButtonAllUsersAllUsers = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowAllUsers())
+        self.pushButtonAllUsersAllUsers.setGeometry(QtCore.QRect(sgX*174, sgY, sgX*10, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         self.pushButtonAllUsersAllUsers.setFont(font)
         self.pushButtonAllUsersAllUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
         self.pushButtonAllUsersAllUsers.setObjectName("pushButtonAllUsersAllUsers")
-        self.pushButtonAllUsersAddUser = QtWidgets.QPushButton(self.groupBoxAllUsers, clicked = lambda: self.openWindowAddUser())
-        self.pushButtonAllUsersAddUser.setGeometry(QtCore.QRect(sgX*174, sgY, sgX*21, sgY*6))
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser = QtWidgets.QPushButton(self.groupBoxMenu, clicked = lambda: self.openWindowAddUser())
+        self.pushButtonAllUsersAddUser.setGeometry(QtCore.QRect(sgX*185, sgY, sgX*10, sgY*6))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         self.pushButtonAllUsersAddUser.setFont(font)
         self.pushButtonAllUsersAddUser.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
         self.pushButtonAllUsersAddUser.setObjectName("pushButtonAllUsersAddUser")
+        self.pushButtonAllUsersAddUser.hide()
 
 
         # All Users
@@ -1402,8 +1373,8 @@ QTableCornerButton::section {
         self.lineEditAllUsersUserName.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditAllUsersUserName.setObjectName("lineEditAllUsersUserName")
         self.listWidgetAllUsersUserName = QtWidgets.QListWidget(self.groupBoxAllUsers)
-        self.listWidgetAllUsersUserName.itemClicked.connect(self.listItemAllUsersClicked)                #itemDoubleClicked.connect
-        self.listWidgetAllUsersUserName.setGeometry(QtCore.QRect(sgX*67, sgY*7, sgX*42, sgY*35))
+        self.listWidgetAllUsersUserName.itemClicked.connect(self.listItemAllUsersClicked)
+        self.listWidgetAllUsersUserName.setGeometry(QtCore.QRect(sgX*77, sgY*7, sgX*42, sgY*35))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*2.5))
@@ -1436,7 +1407,7 @@ QTableCornerButton::section {
         self.lineEditAllUsersUserEmail.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditAllUsersUserEmail.setObjectName("lineEditAllUsersUserEmail")
         self.listWidgetAllUsersUserEmail = QtWidgets.QListWidget(self.groupBoxAllUsers)
-        self.listWidgetAllUsersUserEmail.itemClicked.connect(self.listItemEmailAllUsersClicked)         #itemDoubleClicked.connect
+        self.listWidgetAllUsersUserEmail.itemClicked.connect(self.listItemEmailAllUsersClicked)
         self.listWidgetAllUsersUserEmail.setGeometry(QtCore.QRect(sgX*131, sgY*7, sgX*42, sgY*35))
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
@@ -1493,14 +1464,14 @@ QTableCornerButton::section {
         item.setFont(font)
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidgetAllUsers.setHorizontalHeaderItem(1, item)
-        self.tableWidgetAllUsers.setColumnWidth(1, sgX*73)    # userName
+        self.tableWidgetAllUsers.setColumnWidth(1, sgX*80)    # userName
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
         font.setPointSize(int(sgX*3))
         item.setFont(font)
         self.tableWidgetAllUsers.setHorizontalHeaderItem(2, item)
-        self.tableWidgetAllUsers.setColumnWidth(2, sgX*32)    # userEmail
+        self.tableWidgetAllUsers.setColumnWidth(2, sgX*74)    # userEmail
         self.tableWidgetAllUsers.verticalHeader().setVisible(True)
         self.tableWidgetAllUsers.verticalHeader().setHighlightSections(True)
 
@@ -1511,23 +1482,6 @@ QTableCornerButton::section {
         self.groupBoxAddUser.setStyleSheet("background-color: #1c2428; border: 0px solid #000;")
         self.groupBoxAddUser.setTitle("")
         self.groupBoxAddUser.setObjectName("groupBoxAddUser")
-
-        self.pushButtonAddUserAllUsers = QtWidgets.QPushButton(self.groupBoxAddUser, clicked = lambda: self.openWindowAllUsers())
-        self.pushButtonAddUserAllUsers.setGeometry(QtCore.QRect(sgX*151, sgY, sgX*21, sgY*6))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*3))
-        self.pushButtonAddUserAllUsers.setFont(font)
-        self.pushButtonAddUserAllUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
-        self.pushButtonAddUserAllUsers.setObjectName("pushButtonAddUserAllUsers")
-        self.pushButtonAddUserAddUser = QtWidgets.QPushButton(self.groupBoxAddUser, clicked = lambda: self.openWindowAddUser())
-        self.pushButtonAddUserAddUser.setGeometry(QtCore.QRect(sgX*174, sgY, sgX*21, sgY*6))
-        font = QtGui.QFont()
-        font.setFamily("Helvetica Neue")
-        font.setPointSize(int(sgX*3))
-        self.pushButtonAddUserAddUser.setFont(font)
-        self.pushButtonAddUserAddUser.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
-        self.pushButtonAddUserAddUser.setObjectName("pushButtonAddUserAddUser")
 
         self.lineEditAddUserID = QtWidgets.QLineEdit(self.groupBoxAddUser)
         self.lineEditAddUserID.returnPressed.connect(lambda: self.addUserIDCheck())
@@ -1642,6 +1596,48 @@ QTableCornerButton::section {
         self.lineEditAddUserMessage.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditAddUserMessage.setObjectName("lineEditAddUserMessage")
 
+        self.pushButtonAddUserAdmin = QtWidgets.QPushButton(self.groupBoxAddUser, clicked = lambda: self.openWindowAddUserAdmin())
+        self.pushButtonAddUserAdmin.setGeometry(QtCore.QRect(sgX*171, sgY*70, sgX*10, sgY*5))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.pushButtonAddUserAdmin.setFont(font)
+        self.pushButtonAddUserAdmin.setStyleSheet("border: 4px solid grey; background-color: #908000; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAddUserAdmin.setObjectName("pushButtonAddUserAdmin")
+
+        # Admin
+
+        self.groupBoxAddUserAdmin = QtWidgets.QGroupBox(self.groupBoxUsersOuter)
+        self.groupBoxAddUserAdmin.setGeometry(QtCore.QRect(0, 0, sgX*196, sgY*90))
+        self.groupBoxAddUserAdmin.setStyleSheet("background-color: #1c2428; border: 0px solid #000;")
+        self.groupBoxAddUserAdmin.setTitle("")
+        self.groupBoxAddUserAdmin.setObjectName("groupBoxAddUserAdmin")
+        self.groupBoxAddUserAdmin.hide()
+
+
+
+        self.pushButtonAddUserAdminImport = QtWidgets.QPushButton(self.groupBoxAddUserAdmin, clicked = lambda: self.addUserAdminImport())
+        self.pushButtonAddUserAdminImport.setGeometry(QtCore.QRect(sgX*31, sgY*20, sgX*14, sgY*5))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.pushButtonAddUserAdminImport.setFont(font)
+        self.pushButtonAddUserAdminImport.setStyleSheet("border: 4px solid grey; background-color: #903030; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAddUserAdminImport.setObjectName("pushButtonAddUserAdminImport")
+
+        self.labelAddUserAdminCSVinfo = QtWidgets.QLabel(self.groupBoxAddUserAdmin)
+        self.labelAddUserAdminCSVinfo.setGeometry(QtCore.QRect(sgX*50, sgY*14, sgX*90, sgY*17))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*2.5))
+        self.labelAddUserAdminCSVinfo.setFont(font)
+        self.labelAddUserAdminCSVinfo.setAutoFillBackground(False)
+        self.labelAddUserAdminCSVinfo.setStyleSheet("color: white;background-color: rgba(255, 255, 255, 0);")
+        self.labelAddUserAdminCSVinfo.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.labelAddUserAdminCSVinfo.setObjectName("labelAddUserAdminCSVinfo")
+
+
+
 
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -1732,26 +1728,25 @@ QTableCornerButton::section {
         self.labelHistDateTo.setText(_translate("MainWindow", "To"))
 
 
-        item = self.tableWidgetAI.horizontalHeaderItem(0)
+        item = self.tableWidgetAllItems.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Item ID"))
-        item = self.tableWidgetAI.horizontalHeaderItem(1)
+        item = self.tableWidgetAllItems.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Item Name"))
-        item = self.tableWidgetAI.horizontalHeaderItem(2)
+        item = self.tableWidgetAllItems.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "Item Make"))
-        item = self.tableWidgetAI.horizontalHeaderItem(3)
+        item = self.tableWidgetAllItems.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "Item Model"))
-        item = self.tableWidgetAI.horizontalHeaderItem(4)
+        item = self.tableWidgetAllItems.horizontalHeaderItem(4)
         item.setText(_translate("MainWindow", "Item Serial #"))
-        self.pushButtonAllItemsMenu1.setText(_translate("MainWindow", "All Items"))
-        self.pushButtonAddItemMenu1.setText(_translate("MainWindow", "Add/Edit Item"))
+
+        self.pushButtonAllItemsAllItems.setText(_translate("MainWindow", "All\nItems"))
+        self.pushButtonAllItemsAddItem.setText(_translate("MainWindow", "Edit\nItems"))
         self.pushButtonAIClear.setText(_translate("MainWindow", "Clear"))
         self.pushButtonAIExport.setText(_translate("MainWindow", "Export"))
-        self.labelAIItemiD.setText(_translate("MainWindow", "Item ID"))
-        self.labelAIItemSearch.setText(_translate("MainWindow", "Item Search"))
+        self.labelAllItemsItemID.setText(_translate("MainWindow", "Item ID"))
+        self.labelAllItemsItemSearch.setText(_translate("MainWindow", "Item Search"))
 
 
-        self.pushButtonAllItemsMenu2.setText(_translate("MainWindow", "All Items"))
-        self.pushButtonAddItemMenu2.setText(_translate("MainWindow", "Add/Edit Item"))
         self.labelAIItemBarcode.setText(_translate("MainWindow", "Item BarCode"))
         self.labelAIItemSerial.setText(_translate("MainWindow", "Item Serial No."))
         self.labelAIItemName.setText(_translate("MainWindow", "Item Name"))
@@ -1761,6 +1756,8 @@ QTableCornerButton::section {
         self.pushButtonAddItemClear.setText(_translate("MainWindow", "Clear"))
 
 
+        self.pushButtonAllUsersAllUsers.setText(_translate("MainWindow", "All\nUsers"))
+        self.pushButtonAllUsersAddUser.setText(_translate("MainWindow", "Edit\nUsers"))
         self.labelAllUsersUserID.setText(_translate("MainWindow", "UserID"))
         self.labelAllUsersUserName.setText(_translate("MainWindow", "User Name"))
         self.labelAllUsersUserEmail.setText(_translate("MainWindow", "User Email"))
@@ -1770,11 +1767,9 @@ QTableCornerButton::section {
         item.setText(_translate("MainWindow", "User Name"))
         item = self.tableWidgetAllUsers.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "User Email"))
-        self.pushButtonAllUsersAllUsers.setText(_translate("MainWindow", "All Users"))
-        self.pushButtonAllUsersAddUser.setText(_translate("MainWindow", "Add/Edit User"))
         self.pushButtonAllUsersClear.setText(_translate("MainWindow", "Clear"))
-        self.pushButtonAddUserAllUsers.setText(_translate("MainWindow", "All Users"))
-        self.pushButtonAddUserAddUser.setText(_translate("MainWindow", "Add/Edit User"))
+
+
         self.pushButtonAddUserSave.setText(_translate("MainWindow", "Save"))
         self.pushButtonAddUserClear.setText(_translate("MainWindow", "Clear"))
         self.labelAddUserBarcode.setText(_translate("MainWindow", "User BarCode"))
@@ -1782,15 +1777,23 @@ QTableCornerButton::section {
         self.labelAddUserLastName.setText(_translate("MainWindow", "User Last Name"))
         self.labelAddUserEmail.setText(_translate("MainWindow", "User Email"))
 
+        self.pushButtonAddUserAdmin.setText(_translate("MainWindow", "Admin"))
+        self.pushButtonAddUserAdminImport.setText(_translate("MainWindow", "Import"))
+        
+        self.labelAddUserAdminCSVinfo.setText(_translate("MainWindow", "This will add new users to the current database.\nUse .csv file, with coloumns, User ID, First Name, Last Name, Email"))
+
+
 
         self.show()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
 
         self.lineEditBOUserID.setFocus()
 
@@ -1800,15 +1803,18 @@ QTableCornerButton::section {
         if watchCellChange:
             checkBox = self.tableWidgetBkdO.item(row, column)
             currentState = checkBox.checkState()
-            if currentState > 0:
+            state = currentState.value
+            
+            if state > 0:
                 longTerm = "*"
             else:
                 longTerm = ""
+                
             itemID = self.tableWidgetBkdO.item(row, 1).text()
+            
             outDB.update({'longTerm': longTerm}, DBquery.itemID == itemID)
-            self.populateBookedOut()
 
-            print("HERE")
+            self.populateBookedOut()
 
 
 
@@ -1818,15 +1824,24 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
         self.pushButtonUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
         self.groupBoxBO.show()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
 
         self.lineEditBOUserID.setText("")
         self.lineEditBOUserName.setText("")
@@ -1842,15 +1857,24 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
         self.pushButtonUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
         self.groupBoxBO.hide()
         self.groupBoxRe.show()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
         
         self.tableWidgetRe.setRowCount(0)
         
@@ -1862,15 +1886,24 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid #aa3333; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
         self.pushButtonUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
         self.groupBoxBO.hide()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.show()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
 
         self.populateBookedOut()
 
@@ -1893,33 +1926,51 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid #aa3333; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
         self.pushButtonUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
         self.groupBoxBO.hide()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.show()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAddUserAdmin.hide()
 
         self.refreshHistory()
 
-    def openWindowItems(self):
+    def openWindowAllItems(self):
         self.pushButtonBookOut.setStyleSheet("border: 4px solid grey; background-color: #405C80; border-radius: 10px; color: #ffffff;")
         self.pushButtonReturn.setStyleSheet("border: 4px solid grey; background-color: #405C80; border-radius: 10px; color: #ffffff;")
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.hide()
+        self.pushButtonAllItemsAllItems.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
+        self.pushButtonAllItemsAllItems.show()
+        self.pushButtonAllItemsAddItem.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px;color: #ffffff;")
+        self.pushButtonAllItemsAddItem.show()
         self.pushButtonUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
         self.groupBoxBO.hide()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.show()
+        self.groupBoxAllItemsOuter.show()
         self.groupBoxAllItems.show()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
 
         global allItemsSearchText
         global allItemsSearchID
@@ -1935,15 +1986,26 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.hide()
+        self.pushButtonAllItemsAllItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px;color: #ffffff;")
+        self.pushButtonAllItemsAllItems.show()
+        self.pushButtonAllItemsAddItem.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px;color: #ffffff;")
+        self.pushButtonAllItemsAddItem.show()
         self.pushButtonUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
         self.groupBoxBO.hide()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.show()
+        self.groupBoxAllItemsOuter.show()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.show()
         self.groupBoxUsersOuter.hide()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
 
         self.lineEditAddItemID.setFocus()
 
@@ -1953,19 +2015,26 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
         self.pushButtonUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.hide()
         self.pushButtonAllUsersAllUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllUsersAllUsers.show()
         self.pushButtonAllUsersAddUser.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllUsersAddUser.show()
         self.groupBoxBO.hide()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.show()
         self.groupBoxAllUsers.show()
         self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
 
         global allUsersSearchID
         global allUsersSearchName
@@ -1983,21 +2052,55 @@ QTableCornerButton::section {
         self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
         self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
         self.pushButtonUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
-        self.pushButtonAddUserAllUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
-        self.pushButtonAddUserAddUser.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.hide()
+        self.pushButtonAllUsersAllUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllUsersAllUsers.show()
+        self.pushButtonAllUsersAddUser.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllUsersAddUser.show()
         self.groupBoxBO.hide()
         self.groupBoxRe.hide()
         self.groupBoxBkdO.hide()
         self.groupBoxHist.hide()
-        self.groupBoxItemsOuter.hide()
+        self.groupBoxAllItemsOuter.hide()
         self.groupBoxAllItems.hide()
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.show()
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.show()
+        self.groupBoxAddUserAdmin.hide()
 
         self.lineEditAddUserID.setFocus()
+
+    def openWindowAddUserAdmin(self):
+        self.pushButtonBookOut.setStyleSheet("border: 4px solid grey; background-color: #405C80; border-radius: 10px; color: #ffffff;")
+        self.pushButtonReturn.setStyleSheet("border: 4px solid grey; background-color: #405C80; border-radius: 10px; color: #ffffff;")
+        self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.show()
+        self.pushButtonAllItemsAllItems.hide()
+        self.pushButtonAllItemsAddItem.hide()
+        self.pushButtonUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.hide()
+        self.pushButtonAllUsersAllUsers.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllUsersAllUsers.show()
+        self.pushButtonAllUsersAddUser.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllUsersAddUser.show()
+        self.groupBoxBO.hide()
+        self.groupBoxRe.hide()
+        self.groupBoxBkdO.hide()
+        self.groupBoxHist.hide()
+        self.groupBoxAllItemsOuter.hide()
+        self.groupBoxAllItems.hide()
+        self.groupBoxAddItem.hide()
+        self.groupBoxUsersOuter.show()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.show()
 
 
     def getUserFromID(self, userID):
@@ -2048,16 +2151,13 @@ QTableCornerButton::section {
 
         if self.groupBoxHist.isHidden() and self.groupBoxAllUsers.isHidden():
             names = self.lineEditBOUserName.text()
-            print("123")
         elif self.groupBoxBO.isHidden() and self.groupBoxAllUsers.isHidden():
             names = self.lineEditHistUserName.text()
         elif self.groupBoxHist.isHidden() and self.groupBoxBO.isHidden():
             names = self.lineEditAllUsersUserName.text()
-            
-        names = names.capitalize()
 
-        foundFirstNames = userDB.search(DBquery.firstName.search(names + '+'))
-        foundLastNames = userDB.search(DBquery.lastName.search(names + '+'))
+        foundFirstNames = userDB.search(DBquery.firstName.search(names + '+', flags=re.IGNORECASE))
+        foundLastNames = userDB.search(DBquery.lastName.search(names + '+', flags=re.IGNORECASE))
 
         foundNames = foundFirstNames + foundLastNames
         
@@ -2152,7 +2252,7 @@ QTableCornerButton::section {
         elif self.groupBoxBO.isHidden():
             emails = self.lineEditHistUserEmail.text()
 
-        foundEmails = userDB.search(DBquery.email.search(emails + '+'))
+        foundEmails = userDB.search(DBquery.email.search(emails + '+', flags=re.IGNORECASE))
         
         if len(foundEmails) == 1:
             userID = (foundEmails[0]['userID'])
@@ -2303,7 +2403,6 @@ QTableCornerButton::section {
         chkBoxItem.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
         chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
         
-        #self.tableWidgetBO.setItem(0 , 0, chkBoxItem)
         if listLength > 0:
             i=0
             while i < listLength:                                                           # Iterate through rows
@@ -2335,10 +2434,8 @@ QTableCornerButton::section {
     def doMessage(self, message):
         self.lineEditBOMessage.setText(message)
         self.lineEditReMessage.setText(message)
-        #self.lineEditBkdOMessage.setText(message)
         self.lineEditHistMessage.setText(message)
-        self.lineEditAIMessage.setText(message)
-        #self.lineEditIAMessage.setText(message)
+        self.lineEditAllItemsMessage.setText(message)
         self.lineEditAddUserMessage.setText(message)
         self.lineEditAddItemMessage.setText(message)
         QtCore.QTimer.singleShot(2000, self.resetMessage)
@@ -2346,10 +2443,8 @@ QTableCornerButton::section {
     def resetMessage(self):
         self.lineEditBOMessage.setText("")
         self.lineEditReMessage.setText("")
-        #self.lineEditBkdOMessage.setText("")
         self.lineEditHistMessage.setText("")
-        self.lineEditAIMessage.setText("")
-        #self.lineEditIAMessage.setText("")
+        self.lineEditAllItemsMessage.setText("")
         self.lineEditAddUserMessage.setText("")
         self.lineEditAddItemMessage.setText("")
 
@@ -2397,7 +2492,7 @@ QTableCornerButton::section {
                 while i < listLength:
                     lineData = self.tableWidgetBO.model().index(i, 1)
                     itemID = lineData.data()
-                    if self.tableWidgetBO.item(i, 0).checkState() == 2:
+                    if self.tableWidgetBO.item(i, 0).checkState() != Qt.CheckState.Unchecked.value:
                         longTerm = "*"
                     else:
                         longTerm = ""
@@ -2436,14 +2531,10 @@ QTableCornerButton::section {
                 self.lineEditBOUserName.setText("")
                 self.lineEditBOUserEmail.setText("")
                 self.lineEditBOUserID.setFocus()
-                #while (self.tableWidgetBO.rowCount() > 0):
-                #    self.tableWidgetBO.removeRow(0)
 
     def returnItems(self):
         tempItemInput = self.lineEditReItemID.text()
-        #userID = userData[0]
-
-        #tempItemInput = (self.root.get_screen('returns').ids.textInputItem.text)            # get text in inputItem box
+        
         tempItemName = (itemDB.search(DBquery.itemID == tempItemInput))                     # Check item number is in item database
 
         if tempItemName == "" or tempItemName == []:                                        # If item not in item DB
@@ -2493,6 +2584,8 @@ QTableCornerButton::section {
         global showLongTerm
         global watchCellChange
 
+        self.tableWidgetBkdO.cellChanged.disconnect(self.onCellChanged)
+
         watchCellChange = False
 
         outText = outDB.all()
@@ -2501,8 +2594,6 @@ QTableCornerButton::section {
         chkBoxItem = QtWidgets.QTableWidgetItem()
         chkBoxItem.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
         chkBoxItem.setCheckState(QtCore.Qt.Unchecked)
-        
-        #self.tableWidgetBO.setItem(0 , 0, chkBoxItem)
 
         self.tableWidgetBkdO.setRowCount(0)
 
@@ -2549,12 +2640,10 @@ QTableCornerButton::section {
                 pdf.cell(w=80, h=9, txt= dateOut, fill = True)
                 pdf.cell(w=5, h=9, txt= longTerm, ln=(1), fill = True)
 
-                
                 chkBoxItem.setCheckState(QtCore.Qt.Checked)
 
                 rowPosition = self.tableWidgetBkdO.rowCount()
                 self.tableWidgetBkdO.insertRow(rowPosition)
-                #self.tableWidgetBkdO.setItem(rowPosition , 0, QtWidgets.QTableWidgetItem(longTerm))     # change to checkbox
                 self.tableWidgetBkdO.setItem(rowPosition , 0, QtWidgets.QTableWidgetItem(chkBoxItem))
                 self.tableWidgetBkdO.setItem(rowPosition , 1, QtWidgets.QTableWidgetItem(itemID))
                 self.tableWidgetBkdO.setItem(rowPosition , 2, QtWidgets.QTableWidgetItem(itemName))
@@ -2578,7 +2667,6 @@ QTableCornerButton::section {
 
                 rowPosition = self.tableWidgetBkdO.rowCount()
                 self.tableWidgetBkdO.insertRow(rowPosition)
-                #self.tableWidgetBkdO.setItem(rowPosition , 0, QtWidgets.QTableWidgetItem(longTerm))
                 self.tableWidgetBkdO.setItem(rowPosition , 0, QtWidgets.QTableWidgetItem(chkBoxItem))
                 self.tableWidgetBkdO.setItem(rowPosition , 1, QtWidgets.QTableWidgetItem(itemID))
                 self.tableWidgetBkdO.setItem(rowPosition , 2, QtWidgets.QTableWidgetItem(itemName))
@@ -2596,6 +2684,8 @@ QTableCornerButton::section {
         
         watchCellChange = True
 
+        self.tableWidgetBkdO.cellChanged.connect(self.onCellChanged)
+
     def populateAllItems(self):
         global allItemsSearchText
         global allItemsSearchID
@@ -2604,7 +2694,7 @@ QTableCornerButton::section {
         self.lineEditAIItemSearch.setFocus()
 
         allItemsSearchText = self.lineEditAIItemSearch.text()
-        allItemsSearchID = self.lineEditAIItemID.text()
+        allItemsSearchID = self.lineEditAllItemsItemID.text()
 
         if allItemsSearchText != "":
             allItemsText = itemDB.search(DBquery.itemName.search(allItemsSearchText + '+', flags=re.IGNORECASE))
@@ -2629,7 +2719,7 @@ QTableCornerButton::section {
         pdf.cell(w=120, h=9, txt= "Item Model", fill = True)
         pdf.cell(w=90, h=9, txt= "Item Serial No.", ln=(1), fill = True)
 
-        self.tableWidgetAI.setRowCount(0)
+        self.tableWidgetAllItems.setRowCount(0)
 
         i=0
         while i < DBLengthItems:
@@ -2653,14 +2743,14 @@ QTableCornerButton::section {
             pdf.cell(w=120, h=9, txt= itemModel, fill = True)
             pdf.cell(w=90, h=9, txt= itemSerial, ln=(1), fill = True)
         
-            rowPosition = self.tableWidgetAI.rowCount()
-            self.tableWidgetAI.insertRow(rowPosition)
+            rowPosition = self.tableWidgetAllItems.rowCount()
+            self.tableWidgetAllItems.insertRow(rowPosition)
 
-            self.tableWidgetAI.setItem(rowPosition , 0, QtWidgets.QTableWidgetItem(itemID))
-            self.tableWidgetAI.setItem(rowPosition , 1, QtWidgets.QTableWidgetItem(itemName))
-            self.tableWidgetAI.setItem(rowPosition , 2, QtWidgets.QTableWidgetItem(itemMake))
-            self.tableWidgetAI.setItem(rowPosition , 3, QtWidgets.QTableWidgetItem(itemModel))
-            self.tableWidgetAI.setItem(rowPosition , 4, QtWidgets.QTableWidgetItem(itemSerial))
+            self.tableWidgetAllItems.setItem(rowPosition , 0, QtWidgets.QTableWidgetItem(itemID))
+            self.tableWidgetAllItems.setItem(rowPosition , 1, QtWidgets.QTableWidgetItem(itemName))
+            self.tableWidgetAllItems.setItem(rowPosition , 2, QtWidgets.QTableWidgetItem(itemMake))
+            self.tableWidgetAllItems.setItem(rowPosition , 3, QtWidgets.QTableWidgetItem(itemModel))
+            self.tableWidgetAllItems.setItem(rowPosition , 4, QtWidgets.QTableWidgetItem(itemSerial))
 
             i +=1
 
@@ -2668,7 +2758,7 @@ QTableCornerButton::section {
 
     def clearAllItems(self):
         self.lineEditAIItemSearch.setText("")
-        self.lineEditAIItemID.setText("")
+        self.lineEditAllItemsItemID.setText("")
         self.populateAllItems()
 
     def clearAllUsers(self):
@@ -2681,7 +2771,6 @@ QTableCornerButton::section {
         global allUsersSearchID
         global allUsersSearchName
         global allUsersSearchEmail
-        #global usersPath
         
         self.lineEditAllUsersUserID.setFocus()
 
@@ -2708,10 +2797,11 @@ QTableCornerButton::section {
 
         pdf.cell(w=30, h=9, txt= "User ID", fill = True)
         pdf.cell(w=200, h=9, txt= "User Name", fill = True)
-        pdf.cell(w=90, h=9, txt= "User Email", ln=(1), fill = True)
+        pdf.cell(w=200, h=9, txt= "User Email", ln=(1), fill = True)
 
         self.tableWidgetAllUsers.setRowCount(0)
 
+        
         i=0
         while i < DBLengthItems:
             userID = allUsersText[i]['userID']
@@ -2728,7 +2818,7 @@ QTableCornerButton::section {
             
             pdf.cell(w=30, h=9, txt= userID, fill = True)
             pdf.cell(w=200, h=9, txt= userName, fill = True)
-            pdf.cell(w=90, h=9, txt= userEmail, ln=(1), fill = True)
+            pdf.cell(w=200, h=9, txt= userEmail, ln=(1), fill = True)
         
             rowPosition = self.tableWidgetAllUsers.rowCount()
             self.tableWidgetAllUsers.insertRow(rowPosition)
@@ -2738,8 +2828,8 @@ QTableCornerButton::section {
             self.tableWidgetAllUsers.setItem(rowPosition , 2, QtWidgets.QTableWidgetItem(userEmail))
 
             i +=1
-
-        pdf.output(bookedOutPath)
+        
+        pdf.output(usersPath)
         
 
     def refreshHistory(self):
@@ -2761,9 +2851,6 @@ QTableCornerButton::section {
         dateRangeTo = dateRangeTo.toPython()
         dateRangeTo = str(dateRangeTo + timedelta(days=1))
         dateRangeTo = time.mktime(datetime.strptime(dateRangeTo, "%Y-%m-%d").timetuple())
-
-        #print(dateRangeFrom)
-        #print(dateRangeTo)
         
         if historyItemID == "":
             if historyUserEmail == "":
@@ -2908,6 +2995,43 @@ QTableCornerButton::section {
         self.lineEditAddUserLast.setText("")
         self.lineEditAddUserEmail.setText("")
         self.lineEditAddUserID.setFocus()
+
+    def addUserAdminImport(self):
+        if isWindows:
+            fname = QFileDialog.getOpenFileName(self, "Open Config", "C:\\Users\\Public\\Documents\\Database", "CSV (*.csv)")
+        else:
+            fname = QFileDialog.getOpenFileName(self, "Open Config", '/Users/Shared/Database/', "CSV (*.csv)")
+
+        if fname:
+            filename = fname[0]
+            try:
+                with open(filename, encoding='utf-8-sig') as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter=',')
+                    line_count_added = 0
+                    line_count_skipped = 0
+
+                    for row in csv_reader:
+                        userIDSearch = (userDB.search(DBquery.userID == row[0]))
+
+                        if userIDSearch == []:
+                            userDB.insert({'userID': row[0],
+                                            'firstName': row[1], 
+                                            'lastName': row[2], 
+                                            'email': row[3]})
+                            line_count_added += 1
+                        else:
+                            line_count_skipped += 1
+                
+                msgBox = QMessageBox()
+                msgBox.setIcon(QMessageBox.Information)
+                msgBox.setText("%s Users added\n%s Users skipped" %(line_count_added, line_count_skipped))
+                msgBox.setWindowTitle("Import Complete")
+                msgBox.setStandardButtons(QMessageBox.Ok)
+                msgBox.exec()
+
+            except:
+                self.doMessage("Couldn't Load File")
+        
 
     def addItemIDCheck(self):
         itemID = self.lineEditAddItemID.text()
