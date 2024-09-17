@@ -1289,6 +1289,35 @@ QTableCornerButton::section {
         self.lineEditAddItemMessage.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEditAddItemMessage.setObjectName("lineEditAddItemMessage")
 
+        self.pushButtonAddItemDelete = QtWidgets.QPushButton(self.groupBoxAddItem, clicked = lambda: self.deleteItem())
+        self.pushButtonAddItemDelete.setGeometry(QtCore.QRect(sgX*155, sgY*70, sgX*10, sgY*5))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.pushButtonAddItemDelete.setFont(font)
+        self.pushButtonAddItemDelete.setStyleSheet("border: 4px solid grey; background-color: #908000; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAddItemDelete.setObjectName("pushButtonAddItemDelete")
+
+
+        self.pushButtonAddItemAdmin = QtWidgets.QPushButton(self.groupBoxAddItem, clicked = lambda: self.openWindowAddItemAdmin())
+        self.pushButtonAddItemAdmin.setGeometry(QtCore.QRect(sgX*171, sgY*70, sgX*10, sgY*5))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.pushButtonAddItemAdmin.setFont(font)
+        self.pushButtonAddItemAdmin.setStyleSheet("border: 4px solid grey; background-color: #908000; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAddItemAdmin.setObjectName("pushButtonAddItemAdmin")
+
+        # Admin
+
+        self.groupBoxAddItemAdmin = QtWidgets.QGroupBox(self.groupBoxAllItemsOuter)
+        self.groupBoxAddItemAdmin.setGeometry(QtCore.QRect(0, 0, sgX*196, sgY*90))
+        self.groupBoxAddItemAdmin.setStyleSheet("background-color: #1c2428; border: 0px solid #000;")
+        self.groupBoxAddItemAdmin.setTitle("")
+        self.groupBoxAddItemAdmin.setObjectName("groupBoxAddItemAdmin")
+        self.groupBoxAddItemAdmin.hide()
+
+
 
 
         # Users
@@ -1755,6 +1784,9 @@ QTableCornerButton::section {
         self.pushButtonAddItemSave.setText(_translate("MainWindow", "Save"))
         self.pushButtonAddItemClear.setText(_translate("MainWindow", "Clear"))
 
+        self.pushButtonAddItemAdmin.setText(_translate("MainWindow", "Admin"))
+        self.pushButtonAddItemDelete.setText(_translate("MainWindow", "Delete"))
+        #self.pushButtonAddItemAdminImport.setText(_translate("MainWindow", "Import"))
 
         self.pushButtonAllUsersAllUsers.setText(_translate("MainWindow", "All\nUsers"))
         self.pushButtonAllUsersAddUser.setText(_translate("MainWindow", "Edit\nUsers"))
@@ -1842,6 +1874,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         self.lineEditBOUserID.setText("")
         self.lineEditBOUserName.setText("")
@@ -1875,6 +1908,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
         
         self.tableWidgetRe.setRowCount(0)
         
@@ -1904,6 +1938,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         self.populateBookedOut()
 
@@ -1942,6 +1977,7 @@ QTableCornerButton::section {
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         self.refreshHistory()
 
@@ -1971,6 +2007,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         global allItemsSearchText
         global allItemsSearchID
@@ -2006,6 +2043,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         self.lineEditAddItemID.setFocus()
 
@@ -2035,6 +2073,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.show()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         global allUsersSearchID
         global allUsersSearchName
@@ -2072,6 +2111,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.show()
         self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.hide()
 
         self.lineEditAddUserID.setFocus()
 
@@ -2101,6 +2141,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.show()
+        self.groupBoxAddItemAdmin.hide()
 
 
     def getUserFromID(self, userID):
@@ -3215,6 +3256,51 @@ QTableCornerButton::section {
         self.lineEditAddItemSerial.setText("")
         self.lineEditAddItemID.setFocus()
 
+    def deleteItem(self):
+        itemID = self.lineEditAddItemID.text()
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("Confirm Delete")
+        dlg.setText("Confirm Delete?")
+        detail = "Item ID = %s" % (itemID)
+        dlg.setDetailedText(detail) 
+
+        dlg.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
+        dlg.setDefaultButton(QMessageBox.No) 
+
+        button = dlg.exec()
+
+        if button == QMessageBox.Yes:
+            print("Delete", itemID)
+        else:
+            print("Cancelled")
+
+
+    def openWindowAddItemAdmin(self):
+        self.pushButtonBookOut.setStyleSheet("border: 4px solid grey; background-color: #405C80; border-radius: 10px; color: #ffffff;")
+        self.pushButtonReturn.setStyleSheet("border: 4px solid grey; background-color: #405C80; border-radius: 10px; color: #ffffff;")
+        self.pushButtonBookedOut.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonHistory.setStyleSheet("border: 4px solid grey; background-color: #804040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonItems.hide()
+        self.pushButtonAllItemsAllItems.show()
+        self.pushButtonAllItemsAddItem.setStyleSheet("border: 4px solid grey; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAllItemsAddItem.show()
+        #self.pushButtonUsers.setStyleSheet("border: 4px solid #aa3333; background-color: #408040; border-radius: 10px; color: #ffffff;")
+        self.pushButtonUsers.show()
+        self.pushButtonAllUsersAllUsers.hide()
+        self.pushButtonAllUsersAddUser.hide()
+        self.groupBoxBO.hide()
+        self.groupBoxRe.hide()
+        self.groupBoxBkdO.hide()
+        self.groupBoxHist.hide()
+        self.groupBoxAllItemsOuter.hide()
+        self.groupBoxAllItems.hide()
+        self.groupBoxAddItem.hide()
+        self.groupBoxUsersOuter.show()
+        self.groupBoxAllUsers.hide()
+        self.groupBoxAddUser.hide()
+        self.groupBoxAddUserAdmin.hide()
+        self.groupBoxAddItemAdmin.show()
 
     def exportBooked(self):
         global isWindows
