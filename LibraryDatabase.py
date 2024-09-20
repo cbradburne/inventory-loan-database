@@ -1298,7 +1298,7 @@ QTableCornerButton::section {
         self.pushButtonAddItemDelete.setStyleSheet("border: 4px solid grey; background-color: #908000; border-radius: 10px; color: #ffffff;")
         self.pushButtonAddItemDelete.setObjectName("pushButtonAddItemDelete")
 
-
+        '''
         self.pushButtonAddItemAdmin = QtWidgets.QPushButton(self.groupBoxAddItem, clicked = lambda: self.openWindowAddItemAdmin())
         self.pushButtonAddItemAdmin.setGeometry(QtCore.QRect(sgX*171, sgY*70, sgX*10, sgY*5))
         font = QtGui.QFont()
@@ -1309,7 +1309,7 @@ QTableCornerButton::section {
         self.pushButtonAddItemAdmin.setObjectName("pushButtonAddItemAdmin")
 
         # Admin
-
+        
         self.groupBoxAddItemAdmin = QtWidgets.QGroupBox(self.groupBoxAllItemsOuter)
         self.groupBoxAddItemAdmin.setGeometry(QtCore.QRect(0, 0, sgX*196, sgY*90))
         self.groupBoxAddItemAdmin.setStyleSheet("background-color: #1c2428; border: 0px solid #000;")
@@ -1319,6 +1319,27 @@ QTableCornerButton::section {
 
 
 
+        self.pushButtonAddItemAdminImport = QtWidgets.QPushButton(self.groupBoxAddItemAdmin, clicked = lambda: self.AddItemAdminImport())
+        self.pushButtonAddItemAdminImport.setGeometry(QtCore.QRect(sgX*31, sgY*20, sgX*14, sgY*5))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*3))
+        self.pushButtonAddItemAdminImport.setFont(font)
+        self.pushButtonAddItemAdminImport.setStyleSheet("border: 4px solid grey; background-color: #903030; border-radius: 10px; color: #ffffff;")
+        self.pushButtonAddItemAdminImport.setObjectName("pushButtonAddItemAdminImport")
+
+        self.labelAddItemAdminCSVinfo = QtWidgets.QLabel(self.groupBoxAddItemAdmin)
+        self.labelAddItemAdminCSVinfo.setGeometry(QtCore.QRect(sgX*50, sgY*14, sgX*90, sgY*17))
+        font = QtGui.QFont()
+        font.setFamily("Helvetica Neue")
+        font.setPointSize(int(sgX*2.5))
+        self.labelAddItemAdminCSVinfo.setFont(font)
+        self.labelAddItemAdminCSVinfo.setAutoFillBackground(False)
+        self.labelAddItemAdminCSVinfo.setStyleSheet("color: white;background-color: rgba(255, 255, 255, 0);")
+        self.labelAddItemAdminCSVinfo.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.labelAddItemAdminCSVinfo.setObjectName("labelAddItemAdminCSVinfo")
+
+        '''
 
         # Users
 
@@ -1784,9 +1805,11 @@ QTableCornerButton::section {
         self.pushButtonAddItemSave.setText(_translate("MainWindow", "Save"))
         self.pushButtonAddItemClear.setText(_translate("MainWindow", "Clear"))
 
-        self.pushButtonAddItemAdmin.setText(_translate("MainWindow", "Admin"))
         self.pushButtonAddItemDelete.setText(_translate("MainWindow", "Delete"))
+        #self.pushButtonAddItemAdmin.setText(_translate("MainWindow", "Admin"))
+        
         #self.pushButtonAddItemAdminImport.setText(_translate("MainWindow", "Import"))
+        #self.labelAddItemAdminCSVinfo.setText(_translate("MainWindow", "This will add new items to the current database.\nUse .csv file, ****"))
 
         self.pushButtonAllUsersAllUsers.setText(_translate("MainWindow", "All\nUsers"))
         self.pushButtonAllUsersAddUser.setText(_translate("MainWindow", "Edit\nUsers"))
@@ -1874,7 +1897,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         self.lineEditBOUserID.setText("")
         self.lineEditBOUserName.setText("")
@@ -1908,7 +1931,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
         
         self.tableWidgetRe.setRowCount(0)
         
@@ -1938,7 +1961,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         self.populateBookedOut()
 
@@ -1977,7 +2000,7 @@ QTableCornerButton::section {
         self.groupBoxAddItem.hide()
         self.groupBoxUsersOuter.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         self.refreshHistory()
 
@@ -2007,7 +2030,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         global allItemsSearchText
         global allItemsSearchID
@@ -2043,7 +2066,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         self.lineEditAddItemID.setFocus()
 
@@ -2073,7 +2096,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.show()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         global allUsersSearchID
         global allUsersSearchName
@@ -2111,7 +2134,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.show()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
         self.lineEditAddUserID.setFocus()
 
@@ -2141,7 +2164,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.show()
-        self.groupBoxAddItemAdmin.hide()
+        #self.groupBoxAddItemAdmin.hide()
 
 
     def getUserFromID(self, userID):
@@ -2769,9 +2792,15 @@ QTableCornerButton::section {
         allItemsSearchID = self.lineEditAllItemsItemID.text()
 
         if allItemsSearchText != "":
-            allItemsText = itemDB.search(DBquery.itemName.search(allItemsSearchText + '+', flags=re.IGNORECASE))
-            allItemsText += itemDB.search(DBquery.itemMake.search(allItemsSearchText + '+', flags=re.IGNORECASE))
-            allItemsText += itemDB.search(DBquery.itemModel.search(allItemsSearchText + '+', flags=re.IGNORECASE))
+            allItemsTextSearch = itemDB.search(DBquery.itemName.search(allItemsSearchText + '+', flags=re.IGNORECASE))
+            allItemsTextSearch += itemDB.search(DBquery.itemMake.search(allItemsSearchText + '+', flags=re.IGNORECASE))
+            allItemsTextSearch += itemDB.search(DBquery.itemModel.search(allItemsSearchText + '+', flags=re.IGNORECASE))
+
+            new_list = []
+            [new_list.append(item) for item in allItemsTextSearch if item not in new_list]
+
+            allItemsText = new_list
+
         elif allItemsSearchID != "":
             allItemsText = itemDB.search(DBquery.itemID == allItemsSearchID)
         else:
@@ -3300,7 +3329,7 @@ QTableCornerButton::section {
         self.groupBoxAllUsers.hide()
         self.groupBoxAddUser.hide()
         self.groupBoxAddUserAdmin.hide()
-        self.groupBoxAddItemAdmin.show()
+        #self.groupBoxAddItemAdmin.show()
 
     def exportBooked(self):
         global isWindows
