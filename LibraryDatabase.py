@@ -3343,7 +3343,7 @@ QTableCornerButton::section {
                                 'userLast': tempUserLast, 
                                 'email': tempUserEmail,
                                 'startDate': tempStartDate, 
-                                'returnDa]te': currentDate})                                     # Insert old booking in to historyDB
+                                'returnDate': currentDate})                                     # Insert old booking in to historyDB
 
                 itemDB.remove(DBquery.itemID == itemID)
         else:
