@@ -651,7 +651,7 @@ QTableCornerButton::section {
         self.groupBoxBkdOCheck.setObjectName("groupBoxBkdOCheck")
         self.checkBoxBkdO = QtWidgets.QCheckBox(self.groupBoxBkdOCheck, clicked = lambda: self.showLongTerm())
         self.checkBoxBkdO.setGeometry(QtCore.QRect(13,13,20,20))#sgX*9, sgY*14, sgX*3, sgY*3))
-        self.checkBoxBkdO.setStyleSheet("QCheckBox::indicator { margin-left:50%; margin-right:50%; }") #margin-left:50%; margin-right:50%; 
+        self.checkBoxBkdO.setStyleSheet("QCheckBox::indicator { margin-left:50%; margin-right:50%; }")
         #self.checkBoxBkdO.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         #font = QtGui.QFont()
         #font.setFamily("Helvetica Neue")
@@ -3317,7 +3317,7 @@ QTableCornerButton::section {
 
         if button == QMessageBox.Yes:
             print("Delete", itemID)
-
+            
             outCheck = (outDB.search(DBquery.itemID == itemID))                                 # Check if item already booked out
 
             if not outCheck:                                                                    # If not booked out
