@@ -3345,7 +3345,7 @@ QTableCornerButton::section {
                                 'startDate': tempStartDate, 
                                 'returnDate': currentDate})                                     # Insert old booking in to historyDB
 
-                itemDB.remove(DBquery.itemID == itemID)
+                itemDB.remove(where('itemID') == itemID)
         else:
             print("Cancelled")
 
