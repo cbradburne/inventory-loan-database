@@ -310,6 +310,7 @@ QTableCornerButton::section {
         self.tableWidgetBO.setRowCount(0)
         self.tableWidgetBO.setObjectName("tableWidgetBO")
         self.tableWidgetBO.setColumnCount(6)
+        self.tableWidgetBO.setEditTriggers(QtWidgets.QTableWidget.EditTrigger.NoEditTriggers)
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
         font.setFamily("Helvetica Neue")
