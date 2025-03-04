@@ -3322,6 +3322,7 @@ QTableCornerButton::section {
 
         dlg.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
         dlg.setDefaultButton(QMessageBox.No) 
+        dlg.setStyleSheet("background-color: rgb(0, 0, 0);color: rgb(255, 255, 255);")
 
         button = dlg.exec()
 
@@ -3356,6 +3357,11 @@ QTableCornerButton::section {
                                 'returnDate': currentDate})                                     # Insert old booking in to historyDB
 
                 itemDB.remove(where('itemID') == itemID)
+
+            #self.lineEditAddItemID.setText("")
+            self.addItemClear()
+            self.doMessage("Item Deleted")
+
         else:
             print("Cancelled")
 
