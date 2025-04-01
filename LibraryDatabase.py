@@ -2667,11 +2667,18 @@ QTableCornerButton::section {
                 tempStartDateTS = (tempRead[0]['dateID'])                                   # Store date item was booked out
                 userID = (tempRead[0]['userID'])                                            # Store userID item was booked out to
                 
-                getUser = (userDB.search(DBquery.userID == userID))
-                userFirst = (getUser[0]['firstName'])
-                userLast = (getUser[0]['lastName'])
-                userName = (userFirst + " " + userLast)
-                userEmail = (getUser[0]['email'])
+                try:
+                    getUser = (userDB.search(DBquery.userID == userID))
+                    userFirst = (getUser[0]['firstName'])
+                    userLast = (getUser[0]['lastName'])
+                    userName = (userFirst + " " + userLast)
+                    userEmail = (getUser[0]['email'])
+                except:
+                    userFirst = "User"
+                    userLast = "Removed"
+                    userName = (userFirst + " " + userLast)
+                    userEmail = "UserRemoved@www.com"
+
 
                 getItem = (itemDB.search(DBquery.itemID == tempItemInput)) 
                 itemName = (getItem[0]['itemName'])
@@ -2738,9 +2745,13 @@ QTableCornerButton::section {
             getItem = (itemDB.search(DBquery.itemID == itemID)) 
             itemName = (getItem[0]['itemName'])
             
-            userData = self.getUserFromID(userID)
-            userName = userData[1]
-            userEmail = userData[2]
+            try:
+                userData = self.getUserFromID(userID)
+                userName = userData[1]
+                userEmail = userData[2]
+            except:
+                userName = "User Removed"
+                userEmail = "UserRemoved@www.com"
 
             dateOut = datetime.utcfromtimestamp(dateID).strftime('%Y-%m-%d - %H:%M:%S')
 
@@ -3424,4 +3435,4 @@ if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = databaseApp("")
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
